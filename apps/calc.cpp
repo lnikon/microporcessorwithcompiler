@@ -2,6 +2,6 @@
 
 int main()
 {
-    hello("Zaratustra");
+
     return 0;
 }
