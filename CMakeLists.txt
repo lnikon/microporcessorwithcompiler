@@ -14,6 +14,15 @@ add_library(calclib STATIC src/calclib.cpp include/calc/lib.hpp)
 target_include_directories(calclib PUBLIC include)
 target_compile_features(calclib PUBLIC cxx_std_11)
 
+add_library(asmtranslator STATIC src/asmtranslator.cpp include/asmtranslator/translator.hpp)
+target_include_directories(asmtranslator PUBLIC include)
+target_compile_features(asmtranslator PUBLIC cxx_std_11)
+
+add_library(asminterpreter STATIC src/asminterpreter.cpp include/asminterpreter/interpreter.hpp)
+target_include_directories(asminterpreter PUBLIC include)
+target_compile_features(asminterpreter PUBLIC cxx_std_11)
+
 add_executable(calc apps/calc.cpp)
 target_link_libraries(calc PUBLIC calclib)
-
+target_link_libraries(calc PUBLIC asmtranslator)
+target_link_libraries(calc PUBLIC asminterpreter)
