@@ -2,18 +2,28 @@
 #include <iostream>
 
 #include "ExpressionElementNode.hpp"
-#include "asmtranslator.hpp"
+#include "BinaryOperationNode.hpp"
+#include "BinaryExpressionBuilder.hpp"
+#include "ASMTranslator.hpp"
 
-void ASMTranslator::generate(BinaryExpressionBuilder *pASTBuilder,
+void ASMTranslator::generate(BinaryOperationNode *pASTRoot,
                              const std::string &outputFilename) {
-  std::fstream outputASMFile(outputFilename);
+  m_outputASMFile.open(outputFilename);
 
-  if (!outputASMFile.is_open()) {
+  if (!m_outputASMFile.is_open()) {
     std::cerr << "unable to open assembly file " << outputFilename <<
               " to write assembly\n";
     return;
   }
 
+  BinaryOperationNode *pNode = pASTRoot;
+  postorder(pNode);
+
+  m_outputASMFile.close();
+}
+
+void ASMTranslator::postorder(ExpressionElementNode *pNode) {
+  using ntype = ExpressionElementNode::NodeType;
   ntype type = pNode->getNodeType();
 
   if (type == ntype::Operation) {
@@ -23,9 +33,9 @@ void ASMTranslator::generate(BinaryExpressionBuilder *pASTBuilder,
       return;
     }
 
-    std::cout << opNode->m_binaryOp << " ";
-    postoreder(opNode->mp_left);
-    postoreder(opNode->mp_right);
+    
+    postorder(opNode->mp_left);
+    postorder(opNode->mp_right);
     std::cout << "\n";
   }
 

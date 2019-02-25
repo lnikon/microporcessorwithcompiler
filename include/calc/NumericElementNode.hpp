@@ -1,15 +1,15 @@
 #pragma once
 #include "ExpressionElementNode.hpp"
 
-struct NumericElementNode : ExpressionElementNode
-{
-    NumericElementNode(const NumericElementNode&) = delete;
-    NumericElementNode() = delete;
-    NumericElementNode& operator=(const NumericElementNode&) = delete;
+struct NumericElementNode final : ExpressionElementNode {
+  NumericElementNode(const NumericElementNode &) = delete;
+  NumericElementNode() = delete;
+  NumericElementNode &operator=(const NumericElementNode &) = delete;
 
-    NumericElementNode(double value);
-    virtual double value() override;
+  NumericElementNode(double value);
+  virtual double value() override;
+  virtual NodeType getNodeType() override;
 
-    private:
-    double m_number;
+ private:
+  double m_value;
 };
