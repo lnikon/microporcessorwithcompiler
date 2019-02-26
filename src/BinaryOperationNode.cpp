@@ -14,26 +14,26 @@ double BinaryOperationNode::value() {
   double leftValue = mp_left->value();
   double rightValue = mp_right->value();
 
-  double result = 0;
+  double m_operationResult = 0;
 
   switch (m_binaryOp) {
   case '+': {
-    result = leftValue + rightValue;
+    m_operationResult = leftValue + rightValue;
     break;
   }
 
   case '-': {
-    result = leftValue - rightValue;
+    m_operationResult = leftValue - rightValue;
     break;
   }
 
   case '*': {
-    result = leftValue * rightValue;
+    m_operationResult = leftValue * rightValue;
     break;
   }
 
   case '/': {
-    result = leftValue / rightValue;
+    m_operationResult = leftValue / rightValue;
     break;
   }
 
@@ -43,7 +43,7 @@ double BinaryOperationNode::value() {
   }
   }
 
-  return result;
+  return m_operationResult;
 }
 
 ExpressionElementNode::NodeType BinaryOperationNode::getNodeType() {

@@ -11,6 +11,7 @@ struct BinaryOperationNode final: ExpressionElementNode {
 
   ExpressionElementNode *mp_left;
   ExpressionElementNode *mp_right;
+  double m_operationResult;
   char m_binaryOp;
  private:
 

@@ -5,6 +5,8 @@
 #include "BinaryOperationNode.hpp"
 #include "NumericElementNode.hpp"
 
+#include "ASMTranslator.hpp"
+
 using ntype = ExpressionElementNode::NodeType;
 void postoreder(ExpressionElementNode *pNode) {
   ntype type = pNode->getNodeType();
@@ -20,9 +22,9 @@ void postoreder(ExpressionElementNode *pNode) {
     postoreder(opNode->mp_left);
     postoreder(opNode->mp_right);
     std::cout << "\n";
+  } else {
+    std::cout << pNode->value() << " ";
   }
-
-  std::cout << pNode->value() << " ";
 }
 
 int main() {
@@ -33,7 +35,12 @@ int main() {
   BinaryExpressionBuilder builder;
   BinaryOperationNode *pNode = builder.parse(expression);
 
-  postoreder(dynamic_cast<ExpressionElementNode *>(pNode));
+//  postoreder(dynamic_cast<ExpressionElementNode *>(pNode));
 
+  ASMTranslator translator;
+  translator.generate(pNode, "output.myasm");
+  std::cout << "\n";
+
+  std::cout << "RESULT: " << pNode->value() << "\n";
   return 0;
 }
