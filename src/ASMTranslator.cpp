@@ -41,13 +41,11 @@ void ASMTranslator::postorder(ExpressionElementNode *pNode) {
       postorder(opNode->mp_left);
       postorder(opNode->mp_right);
       m_outputASMFile << operationMnemonic << "\n";
-//      std::cout << operationMnemonic << "\n";
     } else {
       std::cerr << "unsupported operation\n";
       return;
     }
   } else {
     m_outputASMFile << "PUSH" << " " << pNode->value() << "\n";
-//    std::cout << "PUSH" << " " << pNode->value() << "\n";
   }
 }
