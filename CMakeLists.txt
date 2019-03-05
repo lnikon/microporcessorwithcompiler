@@ -19,18 +19,18 @@ add_library(calclib STATIC  src/BinaryExpressionBuilder.cpp
                             include/calc/ExpressionElementNode.hpp
                             )
 target_include_directories(calclib PUBLIC include/calc)
-target_compile_features(calclib PUBLIC cxx_std_11)
+target_compile_features(calclib PUBLIC cxx_std_17)
 set_target_properties(calclib PROPERTIES CXX_STANDARD 17)
 
 add_library(asmtranslator STATIC src/ASMTranslator.cpp include/asmtranslator/ASMTranslator.hpp)
 target_include_directories(asmtranslator PUBLIC include/asmtranslator include/calc)
-target_compile_features(asmtranslator PUBLIC cxx_std_11)
+target_compile_features(asmtranslator PUBLIC cxx_std_17)
 set_target_properties(asmtranslator PROPERTIES CXX_STANDARD 17)
 
 
 add_library(asminterpreter STATIC src/ASMInterpreter.cpp include/asminterpreter/ASMInterpreter.hpp)
 target_include_directories(asminterpreter PUBLIC include/asminterpreter)
-target_compile_features(asminterpreter PUBLIC cxx_std_11)
+target_compile_features(asminterpreter PUBLIC cxx_std_17)
 set_target_properties(asminterpreter PROPERTIES CXX_STANDARD 17)
 
 

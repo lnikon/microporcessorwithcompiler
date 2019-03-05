@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include <optional>
 
 #include "BinaryOperationNode.hpp"
 
@@ -28,13 +29,12 @@ struct ASMTranslatorData {
       m_supportedOperations.find(operation) != m_supportedOperations.end();
   }
 
-  // TODO: change return value to @std::optional<std::string>
-  std::string getMnemonicForOperation(char operation) {
+  std::optional<std::string> getMnemonicForOperation(char operation) {
     if (isSupportedOperation(operation)) {
       return m_operationToMnemonic[operation];
     }
 
-    return "";
+    return std::nullopt;
   }
 };
 
