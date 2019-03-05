@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
+#include <memory>
 
 #include "BinaryOperationNode.hpp"
 
@@ -10,6 +11,7 @@ struct ASMTranslatorData {
   std::unordered_map<char, std::string> m_operationToMnemonic;
 
   ASMTranslatorData() {
+    // TODO: Figure out antoher way to handle operations
     m_supportedOperations['+'] = true;
     m_supportedOperations['-'] = true;
     m_supportedOperations['*'] = true;
@@ -26,6 +28,7 @@ struct ASMTranslatorData {
       m_supportedOperations.find(operation) != m_supportedOperations.end();
   }
 
+  // TODO: change return value to @std::optional<std::string>
   std::string getMnemonicForOperation(char operation) {
     if (isSupportedOperation(operation)) {
       return m_operationToMnemonic[operation];
@@ -37,7 +40,7 @@ struct ASMTranslatorData {
 
 struct BinaryExpressionBuilder;
 struct ASMTranslator final {
-  void generate(BinaryOperationNode *pASTRoot,
+  void generate(std::shared_ptr<BinaryOperationNode> pASTRoot,
                 const std::string &outputFilename);
 
  private:

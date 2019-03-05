@@ -6,7 +6,7 @@
 #include "BinaryExpressionBuilder.hpp"
 #include "ASMTranslator.hpp"
 
-void ASMTranslator::generate(BinaryOperationNode *pASTRoot,
+void ASMTranslator::generate(std::shared_ptr<BinaryOperationNode> pASTRoot,
                              const std::string &outputFilename) {
   m_outputASMFile.open(outputFilename);
 
@@ -16,7 +16,7 @@ void ASMTranslator::generate(BinaryOperationNode *pASTRoot,
     return;
   }
 
-  BinaryOperationNode *pNode = pASTRoot;
+  BinaryOperationNode *pNode = pASTRoot.get();
   postorder(pNode);
 
   m_outputASMFile.close();
@@ -38,8 +38,8 @@ void ASMTranslator::postorder(ExpressionElementNode *pNode) {
     if (m_translatorData.isSupportedOperation(opNode->m_binaryOp)) {
       operationMnemonic = m_translatorData.getMnemonicForOperation(
                             opNode->m_binaryOp);
-      postorder(opNode->mp_left);
-      postorder(opNode->mp_right);
+      postorder(opNode->mp_left.get());
+      postorder(opNode->mp_right.get());
       m_outputASMFile << operationMnemonic << "\n";
     } else {
       std::cerr << "unsupported operation\n";

@@ -4,8 +4,8 @@
 
 BinaryOperationNode::BinaryOperationNode(
   char binaryOp,
-  ExpressionElementNode *pLeft,
-  ExpressionElementNode *pRight)
+  std::shared_ptr<ExpressionElementNode> pLeft,
+  std::shared_ptr<ExpressionElementNode> pRight)
   : mp_left(pLeft), mp_right(pRight), m_binaryOp(binaryOp) {
 
 }

@@ -1,9 +1,11 @@
 #pragma once
+#include <memory>
 #include <string>
 #include <stack>
 
 class BinaryOperationNode;
 class ExpressionElementNode;
+class NumericElementNode;
 
 struct BinaryExpressionBuilder {
   enum class Precedence {
@@ -12,15 +14,15 @@ struct BinaryExpressionBuilder {
     high
   };
 
-  BinaryOperationNode *parse(const std::string &);
-  std::stack<ExpressionElementNode *> getStack() const {
+  std::shared_ptr<ExpressionElementNode> parse(const std::string &);
+  std::stack<std::shared_ptr<ExpressionElementNode>> getStack() const {
     return m_operandStack;
   }
 
   std::string m_asm;
  private:
   std::stack<char> m_operatorStack;
-  std::stack<ExpressionElementNode *> m_operandStack;
+  std::stack<std::shared_ptr<ExpressionElementNode>> m_operandStack;
 
   void processOperator(char op);
   void processRightParenthesis();

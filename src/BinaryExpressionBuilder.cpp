@@ -3,8 +3,9 @@
 #include "BinaryExpressionBuilder.hpp"
 #include "NumericElementNode.hpp"
 #include "BinaryOperationNode.hpp"
+#include "ExpressionElementNode.hpp"
 
-BinaryOperationNode *BinaryExpressionBuilder::parse(
+std::shared_ptr<ExpressionElementNode> BinaryExpressionBuilder::parse(
   const std::string &expression) {
 
   std::stringstream exprStream(expression);
@@ -32,7 +33,9 @@ BinaryOperationNode *BinaryExpressionBuilder::parse(
       double number = .0;
 
       exprStream >> number;
-      NumericElementNode *pNode = new NumericElementNode(number);
+      std::shared_ptr<NumericElementNode> pNode =
+        std::make_shared<NumericElementNode>(number);
+
       m_operandStack.push(pNode);
       continue;
     }
@@ -47,8 +50,8 @@ BinaryOperationNode *BinaryExpressionBuilder::parse(
     throw "not well formed expression\n";
   }
 
-  ExpressionElementNode *pNode = m_operandStack.top();
-  return dynamic_cast<BinaryOperationNode *>(pNode);
+  std::shared_ptr<ExpressionElementNode> pNode = m_operandStack.top();
+  return std::dynamic_pointer_cast<BinaryOperationNode>(pNode);
 }
 
 void BinaryExpressionBuilder::processOperator(char op) {
@@ -74,22 +77,16 @@ void BinaryExpressionBuilder::processRightParenthesis() {
 }
 
 void BinaryExpressionBuilder::doBinary(char op) {
-  ExpressionElementNode *pRight = m_operandStack.top();
+  std::shared_ptr<ExpressionElementNode> pRight = m_operandStack.top();
   m_operandStack.pop();
-  ExpressionElementNode *pLeft = m_operandStack.top();
+
+  std::shared_ptr<ExpressionElementNode> pLeft = m_operandStack.top();
   m_operandStack.pop();
-  BinaryOperationNode *pOperator = new BinaryOperationNode(op, pLeft, pRight);
+
+  std::shared_ptr<BinaryOperationNode> pOperator =
+    std::make_shared<BinaryOperationNode>(op, pLeft, pRight);
+
   m_operandStack.push(pOperator);
-
-//  m_asm.append(&op);
-//  m_asm.append(" ");
-//  m_asm.append(std::to_string(pLeft->value()));
-//  m_asm.append("\n");
-
-//  m_asm.append(&op);
-//  m_asm.append(" ");
-//  m_asm.append(std::to_string(pRight->value()));
-//  m_asm.append("\n");
 }
 
 BinaryExpressionBuilder::Precedence
