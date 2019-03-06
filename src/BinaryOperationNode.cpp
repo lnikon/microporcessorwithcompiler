@@ -3,7 +3,7 @@
 #include "BinaryOperationNode.hpp"
 
 BinaryOperationNode::BinaryOperationNode(
-  char binaryOp,
+  BinaryOperationNode::OperationType binaryOp,
   std::shared_ptr<ExpressionElementNode> pLeft,
   std::shared_ptr<ExpressionElementNode> pRight)
   : mp_left(pLeft), mp_right(pRight), m_binaryOp(binaryOp) {
@@ -16,31 +16,14 @@ double BinaryOperationNode::value() {
 
   double m_operationResult = 0;
 
-  switch (m_binaryOp) {
-  case '+': {
+  if (m_binaryOp == "+") {
     m_operationResult = leftValue + rightValue;
-    break;
-  }
-
-  case '-': {
+  } else if (m_binaryOp == "-") {
     m_operationResult = leftValue - rightValue;
-    break;
-  }
-
-  case '*': {
+  } else if (m_binaryOp == "*") {
     m_operationResult = leftValue * rightValue;
-    break;
-  }
-
-  case '/': {
+  } else if (m_binaryOp == "/") {
     m_operationResult = leftValue / rightValue;
-    break;
-  }
-
-  default: {
-    std::cerr << "unkown operation\n";
-    break;
-  }
   }
 
   return m_operationResult;

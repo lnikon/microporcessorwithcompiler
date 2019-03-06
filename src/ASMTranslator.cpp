@@ -6,8 +6,8 @@
 #include "BinaryExpressionBuilder.hpp"
 #include "ASMTranslator.hpp"
 
-void ASMTranslator::generate(std::shared_ptr<BinaryOperationNode> pASTRoot,
-                             const std::string &outputFilename) {
+void ASMTranslator::generateASM(std::shared_ptr<BinaryOperationNode> pASTRoot,
+                                const std::string &outputFilename) {
   m_outputASMFile.open(outputFilename, std::fstream::out | std::fstream::trunc);
 
   if (!m_outputASMFile.is_open()) {
@@ -19,6 +19,26 @@ void ASMTranslator::generate(std::shared_ptr<BinaryOperationNode> pASTRoot,
   postorder(pNode);
 
   m_outputASMFile.close();
+}
+
+void ASMTranslator::generateMachineCode(const std::string &inputAssembly,
+                                        const std::string &outputFilename) {
+  m_outputASMFile.open(outputFilename, std::fstream::out | std::fstream::trunc);
+
+  if (!m_outputASMFile.is_open()) {
+    throw "unable to open file " + outputFilename +
+    " to write machine code\n";
+  }
+
+  std::fstream inputAssemblyFile(inputAssembly, std::fstream::in);
+
+  if (inputAssemblyFile.is_open()) {
+    throw "unable open assembly file " + inputAssembly +
+    " to read instructions\n";
+  }
+
+  std::string instructionLine;
+
 }
 
 void ASMTranslator::postorder(ExpressionElementNode *pNode) {

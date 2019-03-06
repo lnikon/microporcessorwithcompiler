@@ -3,9 +3,12 @@
 #include "ExpressionElementNode.hpp"
 
 struct BinaryOperationNode final: ExpressionElementNode {
-  BinaryOperationNode(char binaryOp,
+  using OperationType = std::string;
+
+  BinaryOperationNode(OperationType binaryOp,
                       std::shared_ptr<ExpressionElementNode> pLeft,
                       std::shared_ptr<ExpressionElementNode> pRight);
+
 
   virtual double value() override;
   virtual NodeType getNodeType() override;
@@ -13,7 +16,7 @@ struct BinaryOperationNode final: ExpressionElementNode {
   std::shared_ptr<ExpressionElementNode> mp_left;
   std::shared_ptr<ExpressionElementNode> mp_right;
   double m_operationResult;
-  char m_binaryOp;
+  OperationType m_binaryOp;
  private:
 
   BinaryOperationNode() = delete;

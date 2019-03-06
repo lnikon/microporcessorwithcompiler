@@ -21,11 +21,11 @@ struct BinaryExpressionBuilder {
 
   std::string m_asm;
  private:
-  std::stack<char> m_operatorStack;
+  std::stack<std::string> m_operatorStack;
   std::stack<std::shared_ptr<ExpressionElementNode>> m_operandStack;
 
-  void processOperator(char op);
+  void processOperator(std::string op);
   void processRightParenthesis();
-  void doBinary(char op);
-  Precedence precedence(char op);
+  void doBinary(std::string op);
+  Precedence precedence(std::string op);
 };

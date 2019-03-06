@@ -1,5 +1,5 @@
 #include <sstream>
-
+#include <iostream>
 #include "BinaryExpressionBuilder.hpp"
 #include "NumericElementNode.hpp"
 #include "BinaryOperationNode.hpp"
@@ -9,37 +9,34 @@ std::shared_ptr<ExpressionElementNode> BinaryExpressionBuilder::parse(
   const std::string &expression) {
 
   std::stringstream exprStream(expression);
-  char token;
+  std::string token;
 
   while (exprStream >> token) {
-    switch (token) {
-    case '+':
-    case '-':
-    case '*':
-    case '/':
+    std::cout << token;
+
+    if (token == "+" ||
+        token == "-" ||
+        token == "*" ||
+        token == "/") {
+
       processOperator(token);
-      break;
-
-    case ')':
+    } else if (token == ")") {
       processRightParenthesis();
-      break;
-
-    case '(':
+    } else if (token == "(") {
       m_operatorStack.push(token);
-      break;
+    } else {
+//      exprStream.putback(token);
+//      exprStream << token;
 
-    default:
-      exprStream.putback(token);
-      double number = .0;
-
+      double number = std::stol(token);
       exprStream >> number;
       std::shared_ptr<NumericElementNode> pNode =
         std::make_shared<NumericElementNode>(number);
 
       m_operandStack.push(pNode);
-      continue;
     }
   }
+
 
   while (!m_operatorStack.empty()) {
     doBinary(m_operatorStack.top());
@@ -54,7 +51,7 @@ std::shared_ptr<ExpressionElementNode> BinaryExpressionBuilder::parse(
   return std::dynamic_pointer_cast<BinaryOperationNode>(pNode);
 }
 
-void BinaryExpressionBuilder::processOperator(char op) {
+void BinaryExpressionBuilder::processOperator(std::string op) {
   Precedence opPrecedence = precedence(op);
 
   while ((!m_operatorStack.empty()) &&
@@ -68,7 +65,7 @@ void BinaryExpressionBuilder::processOperator(char op) {
 }
 
 void BinaryExpressionBuilder::processRightParenthesis() {
-  while (!m_operatorStack.empty() && m_operatorStack.top() != '(') {
+  while (!m_operatorStack.empty() && m_operatorStack.top() != "(") {
     doBinary(m_operatorStack.top());
     m_operatorStack.pop();
   }
@@ -76,7 +73,7 @@ void BinaryExpressionBuilder::processRightParenthesis() {
   m_operatorStack.pop();
 }
 
-void BinaryExpressionBuilder::doBinary(char op) {
+void BinaryExpressionBuilder::doBinary(std::string op) {
   std::shared_ptr<ExpressionElementNode> pRight = m_operandStack.top();
   m_operandStack.pop();
 
@@ -90,17 +87,14 @@ void BinaryExpressionBuilder::doBinary(char op) {
 }
 
 BinaryExpressionBuilder::Precedence
-BinaryExpressionBuilder::precedence(char op) {
-  switch (op) {
-  case '+':
-  case '-':
+BinaryExpressionBuilder::precedence(std::string op) {
+  if (op == "+" ||
+      op == "-") {
     return Precedence::mid;
-
-  case '*':
-  case '/':
+  } else if (op == "*" ||
+             op == "/") {
     return Precedence::high;
-
-  default:
+  } else {
     return Precedence::low;
   }
 }
