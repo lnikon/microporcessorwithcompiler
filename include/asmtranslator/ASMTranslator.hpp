@@ -12,7 +12,6 @@ struct ASMTranslatorData {
   std::unordered_map<std::string, std::string> m_operationToMnemonic;
 
   ASMTranslatorData() {
-    // TODO: Figure out antoher way to handle operations
     m_supportedOperations["+"] = true;
     m_supportedOperations["-"] = true;
     m_supportedOperations["*"] = true;

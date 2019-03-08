@@ -7,13 +7,14 @@
 #include "ASMTranslator.hpp"
 
 int main() {
-  std::string expression = "3 + 4";
+  auto expression = std::string{"(5 - 3) +5*(4-3)"};
 //  std::cout << "expression: ";
 //  getline(std::cin, expression);
 
   BinaryExpressionBuilder builder;
   std::shared_ptr<ExpressionElementNode> pNode = builder.parse(expression);
 
+  return 0;
   ASMTranslator translator;
   std::shared_ptr<BinaryOperationNode> sharedNode =
     std::dynamic_pointer_cast<BinaryOperationNode>(pNode);

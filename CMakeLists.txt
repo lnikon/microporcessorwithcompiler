@@ -9,32 +9,47 @@ endif()
 project(bitfighter VERSION 1.0
                    DESCRIPTION "Assembly translator for Miyazaki-1988"
                    LANGUAGES CXX)
+set(CMAKE_BUILD_TYPE Debug)
 
-add_library(calclib STATIC  src/BinaryExpressionBuilder.cpp
-                            src/NumericElementNode.cpp
-                            src/BinaryOperationNode.cpp
-                            include/calc/BinaryExpressionBuilder.hpp
-                            include/calc/NumericElementNode.hpp
-                            include/calc/BinaryOperationNode.hpp
-                            include/calc/ExpressionElementNode.hpp
-                            )
-target_include_directories(calclib PUBLIC include/calc)
-target_compile_features(calclib PUBLIC cxx_std_17)
-set_target_properties(calclib PROPERTIES CXX_STANDARD 17)
+file(GLOB CALCULATOR_HPP "${CMAKE_SOURCE_DIR}/include/calculator/*.hpp")
+file(GLOB CALCULATOR_CPP "${CMAKE_SOURCE_DIR}/src/calculator/*.cpp")
 
-add_library(asmtranslator STATIC src/ASMTranslator.cpp include/asmtranslator/ASMTranslator.hpp)
-target_include_directories(asmtranslator PUBLIC include/asmtranslator include/calc)
+add_library(calculator STATIC ${CALCULATOR_HPP} ${CALCULATOR_CPP})
+#add_library(calculator STATIC  src/BinaryExpressionBuilder.cpp
+#                            src/NumericElementNode.cpp
+#                            src/BinaryOperationNode.cpp
+#                            src/Tokenizer.cpp
+#                            include/calculator/BinaryExpressionBuilder.hpp
+#                            include/calculator/NumericElementNode.hpp
+#                            include/calculator/BinaryOperationNode.hpp
+#                            include/calculator/ExpressionElementNode.hpp
+#                            include/calculator/Tokenizer.hpp
+#                            include/calculator/Token.hpp
+#                            )
+
+target_include_directories(calculator PUBLIC include/calculator)
+target_compile_features(calculator PUBLIC cxx_std_17)
+set_target_properties(calculator PROPERTIES CXX_STANDARD 17)
+
+file(GLOB ASMTRANSLATOR_HPP "${CMAKE_SOURCE_DIR}/include/asmtranslator/*.hpp")
+file(GLOB ASMTRANSLATOR_CPP "${CMAKE_SOURCE_DIR}/src/asmtranslator/*.cpp")
+
+# add_library(asmtranslator STATIC src/ASMTranslator.cpp include/asmtranslator/ASMTranslator.hpp)
+add_library(asmtranslator STATIC ${ASMTRANSLATOR_HPP} ${ASMTRANSLATOR_CPP})
+target_include_directories(asmtranslator PUBLIC include/asmtranslator include/calculator)
 target_compile_features(asmtranslator PUBLIC cxx_std_17)
 set_target_properties(asmtranslator PROPERTIES CXX_STANDARD 17)
 
-
-add_library(asminterpreter STATIC src/ASMInterpreter.cpp include/asminterpreter/ASMInterpreter.hpp)
+file(GLOB ASMINTERPRETER_HPP "${CMAKE_SOURCE_DIR}/include/asminterpreter/*.hpp")
+file(GLOB ASMINTERPRETER_CPP "${CMAKE_SOURCE_DIR}/src/asminterpreter/*.cpp")
+# add_library(asminterpreter STATIC src/ASMInterpreter.cpp include/asminterpreter/ASMInterpreter.hpp)
+add_library(asminterpreter STATIC ${ASMINTERPRETER_HPP} ${ASMINTERPRETER_CPP})
 target_include_directories(asminterpreter PUBLIC include/asminterpreter)
 target_compile_features(asminterpreter PUBLIC cxx_std_17)
 set_target_properties(asminterpreter PROPERTIES CXX_STANDARD 17)
 
 
 add_executable(calc apps/calc.cpp)
-target_link_libraries(calc PUBLIC calclib)
+target_link_libraries(calc PUBLIC calculator)
 target_link_libraries(calc PUBLIC asmtranslator)
 target_link_libraries(calc PUBLIC asminterpreter)
