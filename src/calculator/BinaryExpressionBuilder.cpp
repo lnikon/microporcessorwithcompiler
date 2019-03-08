@@ -25,9 +25,6 @@ std::shared_ptr<ExpressionElementNode> BinaryExpressionBuilder::parse(
     } else if (token == "(") {
       m_operatorStack.push(token);
     } else {
-//      exprStream.putback(token);
-//      exprStream << token;
-
       double number = std::stol(token);
       exprStream >> number;
       std::shared_ptr<NumericElementNode> pNode =

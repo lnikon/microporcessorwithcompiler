@@ -6,7 +6,10 @@ BinaryOperationNode::BinaryOperationNode(
   BinaryOperationNode::OperationType binaryOp,
   std::shared_ptr<ExpressionElementNode> pLeft,
   std::shared_ptr<ExpressionElementNode> pRight)
-  : mp_left(pLeft), mp_right(pRight), m_binaryOp(binaryOp) {
+  : mp_left(pLeft),
+	mp_right(pRight),
+	m_operationResult(.0),
+	m_binaryOp(binaryOp) {
 
 }
 
