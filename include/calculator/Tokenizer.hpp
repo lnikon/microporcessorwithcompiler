@@ -14,9 +14,9 @@ struct Tokenizer final {
 		return m_tokens;
 	}
 
-	auto isStringNumber(const std::string& str);
+	bool isStringNumber(const std::string& str);
 
-	auto searchNumber(std::string::iterator begin, std::string::iterator end);
+	std::string::iterator searchNumber(std::string::iterator begin, std::string::iterator end);
 private:
 	std::vector<Token> m_tokens{};
 };

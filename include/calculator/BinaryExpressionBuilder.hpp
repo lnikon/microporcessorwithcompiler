@@ -9,9 +9,9 @@ class NumericElementNode;
 
 struct BinaryExpressionBuilder {
   enum class Precedence {
-    low = 0,
-    mid,
-    high
+    LOW = 0,
+    MID,
+    HIGH
   };
 
   std::shared_ptr<ExpressionElementNode> parse(const std::string &);

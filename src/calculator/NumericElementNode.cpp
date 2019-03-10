@@ -1,11 +1,11 @@
 #include "NumericElementNode.hpp"
 
-NumericElementNode::NumericElementNode(double value)
+NumericElementNode::NumericElementNode(int value)
   : m_value(value) {
 
 }
 
-double NumericElementNode::value() {
+int NumericElementNode::value() {
   return m_value;
 }
 

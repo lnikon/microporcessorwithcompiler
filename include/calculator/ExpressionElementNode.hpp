@@ -5,7 +5,7 @@ struct ExpressionElementNode {
     Operand
   };
 
-  virtual double value() = 0;
+  virtual int value() = 0;
   virtual ~ExpressionElementNode() = default;
   virtual NodeType getNodeType() = 0;
 };

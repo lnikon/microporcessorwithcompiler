@@ -13,11 +13,11 @@ BinaryOperationNode::BinaryOperationNode(
 
 }
 
-double BinaryOperationNode::value() {
-  double leftValue = mp_left->value();
-  double rightValue = mp_right->value();
+int BinaryOperationNode::value() {
+  int leftValue = mp_left->value();
+  int rightValue = mp_right->value();
 
-  double m_operationResult = 0;
+  int m_operationResult = 0;
 
   if (m_binaryOp == "+") {
     m_operationResult = leftValue + rightValue;

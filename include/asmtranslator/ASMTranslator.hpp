@@ -1,11 +1,18 @@
 #pragma once
 #include <fstream>
 #include <string>
+#include <algorithm>
+#include <iterator>
 #include <unordered_map>
 #include <memory>
 #include <optional>
 
 #include "BinaryOperationNode.hpp"
+
+std::string decimalToBinary(int number, int bitNumber);
+int binaryToDecimal(const std::string& binary, int bitNumber);
+int charToInt(char c);
+char intToChar(int i);
 
 struct ASMTranslatorData {
   std::unordered_map<std::string, bool> m_supportedOperations;
@@ -38,7 +45,9 @@ struct ASMTranslatorData {
 };
 
 struct InstructionData {
-  std::unordered_map<std::string, std::string> m_mnemonicToChain;
+	static const int INSTRUCTION_WIDTH = 3;
+	static const int OPERAND_WIDTH = 32;
+	std::unordered_map<std::string, std::string> m_mnemonicToChain;
 
   InstructionData() {
     m_mnemonicToChain["NOP"]  = "000";
@@ -49,7 +58,7 @@ struct InstructionData {
     m_mnemonicToChain["DIV"]  = "101";
   }
 
-  std::optional<std::string> getInstructionChain(std::string &instruction) {
+  std::optional<std::string> getInstructionChain(const std::string &instruction) {
     auto it = m_mnemonicToChain.find(instruction);
 
     if (it != m_mnemonicToChain.end()) {
@@ -57,6 +66,23 @@ struct InstructionData {
     }
 
     return std::nullopt;
+  }
+
+  /*! \brief Returns instruction name for specified chain
+   *
+   *  @chain binary string which corresponds to instruction
+   *  @return instruction name, if exists, otherwise empty std::optional<std::string>
+   */
+  std::optional<std::string> getInstructionName(const std::string& chain) {
+	  auto it = std::find_if(std::begin(m_mnemonicToChain), std::end(m_mnemonicToChain), [chain](const auto& nameToChain) {
+			  return nameToChain.second == chain;
+	  });
+
+	  if(it != std::end(m_mnemonicToChain)) {
+		  return std::make_optional(it->first);
+	  }
+
+	  return std::nullopt;
   }
 };
 
@@ -68,9 +94,17 @@ struct ASMTranslator final {
   void generateMachineCode(const std::string &inputAssembly,
                            const std::string &outputFilename);
 
+  // TODO: Move this whole shit into separate Common class
+  // and links to it
+//  std::string decimalToBinary(int number, int bitNumber);
+//  int binaryToDecimal(const std::string& binary, int bitNumber);
+//  int charToInt(char c);
+//  char intToChar(int i);
+
  private:
   std::fstream m_outputASMFile;
   ASMTranslatorData m_translatorData;
+  InstructionData m_instructionData;
 
   void postorder(ExpressionElementNode *pNode);
 };

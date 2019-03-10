@@ -6,10 +6,10 @@ struct NumericElementNode final : ExpressionElementNode {
   NumericElementNode() = delete;
   NumericElementNode &operator=(const NumericElementNode &) = delete;
 
-  NumericElementNode(double value);
-  virtual double value() override;
+  NumericElementNode(int value);
+  virtual int value() override;
   virtual NodeType getNodeType() override;
 
  private:
-  double m_value;
+  int m_value;
 };

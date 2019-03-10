@@ -10,12 +10,12 @@ struct BinaryOperationNode final: ExpressionElementNode {
                       std::shared_ptr<ExpressionElementNode> pRight);
 
 
-  virtual double value() override;
+  virtual int value() override;
   virtual NodeType getNodeType() override;
 
   std::shared_ptr<ExpressionElementNode> mp_left;
   std::shared_ptr<ExpressionElementNode> mp_right;
-  double m_operationResult;
+  int m_operationResult;
   OperationType m_binaryOp;
  private:
 
