@@ -13,16 +13,12 @@ void ASMInterpreter::run(const std::string& filename) {
 
 	auto finalChain = std::string{};
 
-	std::stringstream ss;
-	ss << machineCode.rdbuf();
-	finalChain = ss.str();
+	machineCode.seekg(0, std::ios::end);
+	finalChain.reserve(machineCode.tellg());
+	machineCode.seekg(0, std::ios::beg);
 
-//	machineCode.seekg(0, std::ios::end);
-//	finalChain.reserve(machineCode.tellg());
-//	machineCode.seekg(0, std::ios::beg);
-//
-//	finalChain.assign(std::istreambuf_iterator<char>{machineCode},
-//			std::istreambuf_iterator<char>());
+	finalChain.assign(std::istreambuf_iterator<char>{machineCode},
+			std::istreambuf_iterator<char>());
 
 	// Our machine code chains format is follow
 	// [0...2][3-34]

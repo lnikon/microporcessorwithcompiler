@@ -94,17 +94,9 @@ struct ASMTranslator final {
   void generateMachineCode(const std::string &inputAssembly,
                            const std::string &outputFilename);
 
-  // TODO: Move this whole shit into separate Common class
-  // and links to it
-//  std::string decimalToBinary(int number, int bitNumber);
-//  int binaryToDecimal(const std::string& binary, int bitNumber);
-//  int charToInt(char c);
-//  char intToChar(int i);
-
  private:
-  std::fstream m_outputASMFile;
   ASMTranslatorData m_translatorData;
   InstructionData m_instructionData;
 
-  void postorder(ExpressionElementNode *pNode);
+  void postorder(std::fstream& outputASMFile, ExpressionElementNode *pNode);
 };

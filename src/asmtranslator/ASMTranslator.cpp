@@ -25,7 +25,6 @@ std::string decimalToBinary(int number, int bitNumber) {
 }
 
 int binaryToDecimal(const std::string& binary, int bitNumber) {
-	// TODO: Remake to std::optional<int>
 	if(bitNumber < 0) {
 		return -1;
 	}
@@ -55,24 +54,22 @@ char intToChar(int i) {
 
 void ASMTranslator::generateASM(std::shared_ptr<BinaryOperationNode> pASTRoot,
                                 const std::string &outputFilename) {
-  m_outputASMFile.open(outputFilename, std::fstream::out | std::fstream::trunc);
+  std::fstream outputASMFile(outputFilename, std::fstream::out | std::fstream::trunc);
 
-  if (!m_outputASMFile.is_open()) {
+  if (!outputASMFile.is_open()) {
     throw "unable to open assembly file " + outputFilename +
     " to write assembly\n";
   }
 
   BinaryOperationNode *pNode = pASTRoot.get();
-  postorder(pNode);
-
-  m_outputASMFile.close();
+  postorder(outputASMFile, pNode);
 }
 
 void ASMTranslator::generateMachineCode(const std::string &inputAssembly,
                                         const std::string &outputFilename) {
-  m_outputASMFile.open(outputFilename, std::fstream::out | std::fstream::trunc);
+  std::fstream outputASMFile(outputFilename, std::fstream::out | std::fstream::trunc);
 
-  if (!m_outputASMFile.is_open()) {
+  if (!outputASMFile.is_open()) {
     throw "unable to open file " + outputFilename +
     " to write machine code\n";
   }
@@ -122,15 +119,13 @@ void ASMTranslator::generateMachineCode(const std::string &inputAssembly,
 	  }
   }
 
-  std::ostream_iterator<std::string> osi{m_outputASMFile};
+  std::ostream_iterator<std::string> osi{outputASMFile};
   std::copy(std::begin(machineCode), std::end(machineCode), osi);
-
-  m_outputASMFile.close();
 }
 
 
 
-void ASMTranslator::postorder(ExpressionElementNode *pNode) {
+void ASMTranslator::postorder(std::fstream& outputASMFile, ExpressionElementNode *pNode) {
   using ntype = ExpressionElementNode::NodeType;
   ntype type = pNode->getNodeType();
 
@@ -151,13 +146,13 @@ void ASMTranslator::postorder(ExpressionElementNode *pNode) {
         throw "can\t find mnemonic for specified operation\n";
       }
 
-      postorder(opNode->mp_left.get());
-      postorder(opNode->mp_right.get());
-      m_outputASMFile << operationMnemonic.value() << "\n";
+      postorder(outputASMFile, opNode->mp_left.get());
+      postorder(outputASMFile, opNode->mp_right.get());
+      outputASMFile << operationMnemonic.value() << "\n";
     } else {
       throw "unsupported operation in ASMTranslator::postorder\n";
     }
   } else {
-    m_outputASMFile << "PUSH" << " " << pNode->value() << "\n";
+	  outputASMFile << "PUSH" << " " << pNode->value() << "\n";
   }
 }
