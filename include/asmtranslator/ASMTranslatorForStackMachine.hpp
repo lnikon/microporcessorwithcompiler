@@ -14,11 +14,11 @@ int binaryToDecimal(const std::string& binary, int bitNumber);
 int charToInt(char c);
 char intToChar(int i);
 
-struct ASMTranslatorData {
+struct ASMTranslatorForStackMachineData {
   std::unordered_map<std::string, bool> m_supportedOperations;
   std::unordered_map<std::string, std::string> m_operationToMnemonic;
 
-  ASMTranslatorData() {
+  ASMTranslatorForStackMachineData() {
     m_supportedOperations["+"] = true;
     m_supportedOperations["-"] = true;
     m_supportedOperations["*"] = true;
@@ -87,15 +87,15 @@ struct InstructionData {
 };
 
 struct BinaryExpressionBuilder;
-struct ASMTranslator final {
+struct ASMTranslatorForStackMachine {
   void generateASM(std::shared_ptr<BinaryOperationNode> pASTRoot,
                    const std::string &outputFilename);
 
   void generateMachineCode(const std::string &inputAssembly,
                            const std::string &outputFilename);
 
- private:
-  ASMTranslatorData m_translatorData;
+  protected:
+  ASMTranslatorForStackMachineData m_translatorData;
   InstructionData m_instructionData;
 
   void postorder(std::fstream& outputASMFile, ExpressionElementNode *pNode);

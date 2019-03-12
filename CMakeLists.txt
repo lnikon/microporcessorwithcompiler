@@ -34,7 +34,7 @@ add_library(calculator STATIC ${CALCULATOR_HPP} ${CALCULATOR_CPP})      #
                                                                         #
 target_include_directories(calculator PUBLIC include/calculator)        #
 target_compile_features(calculator PUBLIC cxx_std_17)                   #
-set_target_properties(calculator PROPERTIES CXX_STANDARD 17)            #
+# set_target_properties(calculator PROPERTIES CXX_STANDARD 17)            #
 ################ END Calculator #########################################
 
 
@@ -46,7 +46,7 @@ add_library(asmtranslator STATIC ${ASMTRANSLATOR_HPP} ${ASMTRANSLATOR_CPP})     
                                                                                          #
 target_include_directories(asmtranslator PUBLIC include/asmtranslator include/calculator)#
 target_compile_features(asmtranslator PUBLIC cxx_std_17)                                 #
-set_target_properties(asmtranslator PROPERTIES CXX_STANDARD 17)                          #
+# set_target_properties(asmtranslator PROPERTIES CXX_STANDARD 17)                          #
 ################ END ASMTranslator #######################################################
 
 
@@ -57,9 +57,9 @@ file(GLOB ASMINTERPRETER_CPP "${CMAKE_SOURCE_DIR}/src/asminterpreter/*.cpp")    
 add_library(asminterpreter STATIC ${ASMINTERPRETER_HPP} ${ASMINTERPRETER_CPP})           #
                                                                                          #
 target_include_directories(asminterpreter PUBLIC include/asminterpreter)                 #
-target_link_libraries(asminterpreter PUBLIC asmtranslator)
+target_link_libraries(asminterpreter PUBLIC asmtranslator)                               #
 target_compile_features(asminterpreter PUBLIC cxx_std_17)                                #
-set_target_properties(asminterpreter PROPERTIES CXX_STANDARD 17)                         #
+# set_target_properties(asminterpreter PROPERTIES CXX_STANDARD 17)                         #
 ################ END ASMInterpreter ######################################################
 
 

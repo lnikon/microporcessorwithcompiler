@@ -1,7 +1,7 @@
 # Project structure
 1. apps binaries located here
 2. include library headers
-  * ASMTranslator - Translates AST into stack-machine assembly after which produces machine-code.
+  * ASMTranslatorForStackMachine - Translates AST into stack-machine assembly after which produces machine-code.
   * ASMInterpreter - Interprets produced machine-code.
   * Calculator - Defines classes for tokenization, AST building and evaluation of arithmetical expressions.
 3. src - source codes of mentioned libraries

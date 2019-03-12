@@ -2,7 +2,7 @@
 
 #include <string>
 #include <stack>
-#include "ASMTranslator.hpp"
+#include "ASMTranslatorForStackMachine.hpp"
 
 struct ASMInterpreter {
 	void run(const std::string& filename);

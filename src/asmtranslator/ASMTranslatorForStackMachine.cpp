@@ -10,7 +10,7 @@
 #include "ExpressionElementNode.hpp"
 #include "BinaryOperationNode.hpp"
 #include "BinaryExpressionBuilder.hpp"
-#include "ASMTranslator.hpp"
+#include "ASMTranslatorForStackMachine.hpp"
 
 std::string decimalToBinary(int number, int bitNumber) {
 	std::string result;
@@ -52,7 +52,7 @@ char intToChar(int i) {
 	return i + '0';
 }
 
-void ASMTranslator::generateASM(std::shared_ptr<BinaryOperationNode> pASTRoot,
+void ASMTranslatorForStackMachine::generateASM(std::shared_ptr<BinaryOperationNode> pASTRoot,
                                 const std::string &outputFilename) {
   std::fstream outputASMFile(outputFilename, std::fstream::out | std::fstream::trunc);
 
@@ -65,7 +65,7 @@ void ASMTranslator::generateASM(std::shared_ptr<BinaryOperationNode> pASTRoot,
   postorder(outputASMFile, pNode);
 }
 
-void ASMTranslator::generateMachineCode(const std::string &inputAssembly,
+void ASMTranslatorForStackMachine::generateMachineCode(const std::string &inputAssembly,
                                         const std::string &outputFilename) {
   std::fstream outputASMFile(outputFilename, std::fstream::out | std::fstream::trunc);
 
@@ -123,9 +123,7 @@ void ASMTranslator::generateMachineCode(const std::string &inputAssembly,
   std::copy(std::begin(machineCode), std::end(machineCode), osi);
 }
 
-
-
-void ASMTranslator::postorder(std::fstream& outputASMFile, ExpressionElementNode *pNode) {
+void ASMTranslatorForStackMachine::postorder(std::fstream& outputASMFile, ExpressionElementNode *pNode) {
   using ntype = ExpressionElementNode::NodeType;
   ntype type = pNode->getNodeType();
 
@@ -135,7 +133,7 @@ void ASMTranslator::postorder(std::fstream& outputASMFile, ExpressionElementNode
     BinaryOperationNode *opNode = dynamic_cast<BinaryOperationNode *>(pNode);
 
     if (opNode == nullptr) {
-      throw "unable to cast to BinaryOperationNode at ASMTranslator::postorder()";
+      throw "unable to cast to BinaryOperationNode at ASMTranslatorForStackMachine::postorder()";
     }
 
     if (m_translatorData.isSupportedOperation(opNode->m_binaryOp)) {
@@ -150,7 +148,7 @@ void ASMTranslator::postorder(std::fstream& outputASMFile, ExpressionElementNode
       postorder(outputASMFile, opNode->mp_right.get());
       outputASMFile << operationMnemonic.value() << "\n";
     } else {
-      throw "unsupported operation in ASMTranslator::postorder\n";
+      throw "unsupported operation in ASMTranslatorForStackMachine::postorder\n";
     }
   } else {
 	  outputASMFile << "PUSH" << " " << pNode->value() << "\n";
