@@ -78,6 +78,10 @@ void RegisterMachineInterpreter::decode(
 	auto [instrName, operand1, operand2] = instructionWithOperands;
 
 	auto instrToInfoIt = m_instructionToInfo.find(instrName);
+    if(instrToInfoIt != std::end(m_instructionToInfo)) {
+        int operandsNumber = instrToInfoIt->second;
+
+    }
 }
 
 void RegisterMachineInterpreter::execute() {
