@@ -74,15 +74,16 @@ target_compile_features(registermachinevm PUBLIC cxx_std_17)                    
 # set_target_properties(asminterpreter PROPERTIES CXX_STANDARD 17)                     #
 ################ END RegisterMachineVM #################################################
 
-################ START Executables ###############
-add_executable(calc apps/calc.cpp)               #
-target_link_libraries(calc PUBLIC calculator)    #
-target_link_libraries(calc PUBLIC asmtranslator) #
-target_link_libraries(calc PUBLIC asminterpreter)#
-
-add_executable(two_operand_asm apps/two_operand_asm.cpp)               #
-target_link_libraries(two_operand_asm PUBLIC calculator)    #
-target_link_libraries(two_operand_asm PUBLIC asmtranslator) #
-target_link_libraries(two_operand_asm PUBLIC asminterpreter)#
-################ END Executables #################
+################ START Executables #############################
+add_executable(calc apps/calc.cpp)                             #
+target_link_libraries(calc PUBLIC calculator)                  #
+target_link_libraries(calc PUBLIC asmtranslator)               #
+target_link_libraries(calc PUBLIC asminterpreter)              #
+                                                               #
+add_executable(two_operand_asm apps/two_operand_asm.cpp)       #
+target_link_libraries(two_operand_asm PUBLIC calculator)       #
+target_link_libraries(two_operand_asm PUBLIC asmtranslator)    #
+target_link_libraries(two_operand_asm PUBLIC asminterpreter)   #
+target_link_libraries(two_operand_asm PUBLIC registermachinevm)#
+################ END Executables ###############################
 

@@ -5,10 +5,14 @@
 
 #include "Interpreter.hpp"
 
+RegisterMachineInterpreter::RegisterMachineInterpreter() {
+	fillInstructionToInfo();
+}
+
 void RegisterMachineInterpreter::run(
 		const std::string& inputAssembly) {
-	fillInstructions(inputAssembly);
 
+	fillInstructions(inputAssembly);
 	const std::size_t instructionsSize = m_instructions.size();
 
 	while(m_programCounter != instructionsSize) {
@@ -35,7 +39,7 @@ void RegisterMachineInterpreter::fillInstructions(
 	auto operand1 = std::string{};
 	auto operand2 = std::string{};
 
-	while(inputAssemblyStream >> line) {
+	while(std::getline(inputAssemblyStream, line)) {
 		auto lineStream = std::istringstream{line};
 
 		std::vector<std::string> lineVector{StringIterator{lineStream},
@@ -52,8 +56,16 @@ void RegisterMachineInterpreter::fillInstructions(
 			operand2 = std::string{};
 		}
 
-		m_instructions.push_back(std::make_tuple(instruction, operand1, operand1));
+		m_instructions.push_back(std::make_tuple(instruction, operand1, operand2));
 	}
+}
+
+void RegisterMachineInterpreter::fillInstructionToInfo() {
+	m_instructionToInfo["LOAD"] = 2;
+	m_instructionToInfo["ADD"] = 2;
+	m_instructionToInfo["SUB"] = 2;
+	m_instructionToInfo["MUL"] = 2;
+	m_instructionToInfo["DIV"] = 2;
 }
 
 std::tuple<std::string, std::string, std::string> RegisterMachineInterpreter::fetch() {
@@ -63,6 +75,9 @@ std::tuple<std::string, std::string, std::string> RegisterMachineInterpreter::fe
 void RegisterMachineInterpreter::decode(
 		const std::tuple<std::string, std::string, std::string>& instructionWithOperands) {
 
+	auto [instrName, operand1, operand2] = instructionWithOperands;
+
+	auto instrToInfoIt = m_instructionToInfo.find(instrName);
 }
 
 void RegisterMachineInterpreter::execute() {
