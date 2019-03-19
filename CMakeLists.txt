@@ -46,27 +46,43 @@ add_library(asmtranslator STATIC ${ASMTRANSLATOR_HPP} ${ASMTRANSLATOR_CPP})     
                                                                                          #
 target_include_directories(asmtranslator PUBLIC include/asmtranslator include/calculator)#
 target_compile_features(asmtranslator PUBLIC cxx_std_17)                                 #
-# set_target_properties(asmtranslator PROPERTIES CXX_STANDARD 17)                          #
+# set_target_properties(asmtranslator PROPERTIES CXX_STANDARD 17)                        #
 ################ END ASMTranslator #######################################################
 
 
-################ START ASMInterpreter ####################################################
-file(GLOB ASMINTERPRETER_HPP "${CMAKE_SOURCE_DIR}/include/asminterpreter/*.hpp")         #
-file(GLOB ASMINTERPRETER_CPP "${CMAKE_SOURCE_DIR}/src/asminterpreter/*.cpp")             #
-                                                                                         #
-add_library(asminterpreter STATIC ${ASMINTERPRETER_HPP} ${ASMINTERPRETER_CPP})           #
-                                                                                         #
-target_include_directories(asminterpreter PUBLIC include/asminterpreter)                 #
-target_link_libraries(asminterpreter PUBLIC asmtranslator)                               #
-target_compile_features(asminterpreter PUBLIC cxx_std_17)                                #
-# set_target_properties(asminterpreter PROPERTIES CXX_STANDARD 17)                         #
-################ END ASMInterpreter ######################################################
+################ START ASMInterpreter ###########################################
+file(GLOB ASMINTERPRETER_HPP "${CMAKE_SOURCE_DIR}/include/asminterpreter/*.hpp")#
+file(GLOB ASMINTERPRETER_CPP "${CMAKE_SOURCE_DIR}/src/asminterpreter/*.cpp")    #
+                                                                                #
+add_library(asminterpreter STATIC ${ASMINTERPRETER_HPP} ${ASMINTERPRETER_CPP})  #
+                                                                                #
+target_include_directories(asminterpreter PUBLIC include/asminterpreter)        #
+target_link_libraries(asminterpreter PUBLIC asmtranslator)                      #
+target_compile_features(asminterpreter PUBLIC cxx_std_17)                       #
+# set_target_properties(asminterpreter PROPERTIES CXX_STANDARD 17)              #
+################ END ASMInterpreter #############################################
 
+################ START RegisterMachineVM ###############################################
+file(GLOB REGISTERMACHINEVM_HPP "${CMAKE_SOURCE_DIR}/include/registermachinevm/*.hpp") #
+file(GLOB REGISTERMACHINEVM_CPP "${CMAKE_SOURCE_DIR}/src/registermachinevm/*.cpp")     #
+                                                                                       #
+add_library(registermachinevm STATIC ${REGISTERMACHINEVM_HPP} ${REGISTERMACHINEVM_CPP})#
+                                                                                       #
+target_include_directories(registermachinevm PUBLIC include/registermachinevm)         #
+# target_link_libraries(registermachinevm PUBLIC asmtranslator)                        #
+target_compile_features(registermachinevm PUBLIC cxx_std_17)                           #
+# set_target_properties(asminterpreter PROPERTIES CXX_STANDARD 17)                     #
+################ END RegisterMachineVM #################################################
 
 ################ START Executables ###############
 add_executable(calc apps/calc.cpp)               #
 target_link_libraries(calc PUBLIC calculator)    #
 target_link_libraries(calc PUBLIC asmtranslator) #
 target_link_libraries(calc PUBLIC asminterpreter)#
+
+add_executable(two_operand_asm apps/two_operand_asm.cpp)               #
+target_link_libraries(two_operand_asm PUBLIC calculator)    #
+target_link_libraries(two_operand_asm PUBLIC asmtranslator) #
+target_link_libraries(two_operand_asm PUBLIC asminterpreter)#
 ################ END Executables #################
 
