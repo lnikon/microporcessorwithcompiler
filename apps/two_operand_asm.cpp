@@ -4,10 +4,10 @@
 #include "Interpreter.hpp"
 
 int main() {
-	RegisterMachineInterpreter rgvm;
+  RegisterMachineInterpreter rgvm;
 
-	const std::string& filename = "two_operand_asm.myasm";
-	rgvm.run(filename);
+  const std::string& filename = "two_operand_asm.myasm";
+  rgvm.run(filename);
 
-    return 0;
+  return 0;
 }
