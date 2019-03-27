@@ -71,6 +71,7 @@ add_library(registermachinevm STATIC ${REGISTERMACHINEVM_HPP} ${REGISTERMACHINEV
 target_include_directories(registermachinevm PUBLIC include/registermachinevm)         #
 # target_link_libraries(registermachinevm PUBLIC asmtranslator)                        #
 target_compile_features(registermachinevm PUBLIC cxx_std_17)                           #
+target_compile_options(registermachinevm PUBLIC -Wall -Werror -pedantic)               #
 # set_target_properties(asminterpreter PROPERTIES CXX_STANDARD 17)                     #
 ################ END RegisterMachineVM #################################################
 

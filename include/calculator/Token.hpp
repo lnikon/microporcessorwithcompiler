@@ -31,6 +31,7 @@ struct Token final {
 	auto getToken() const {
 		return m_token;
 	}
+
 private:
 	std::string m_token{};
 	TokenType m_type{TokenType::UNKNOWN};

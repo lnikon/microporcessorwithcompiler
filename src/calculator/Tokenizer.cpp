@@ -75,7 +75,7 @@ bool Tokenizer::isStringNumber(const std::string& str) {
 }
 
 std::string::iterator Tokenizer::searchNumber(std::string::iterator begin,
-		std::string::iterator end) {
-	return std::find_if_not(begin, end,
-			[](char c) { return std::isdigit(c) || c == '.'; });
+    std::string::iterator end) {
+  return std::find_if_not(begin, end,
+      [](char c) { return std::isdigit(c) || c == '.'; });
 }

@@ -6,8 +6,8 @@ struct BinaryOperationNode final: ExpressionElementNode {
   using OperationType = std::string;
 
   BinaryOperationNode(OperationType binaryOp,
-                      std::shared_ptr<ExpressionElementNode> pLeft,
-                      std::shared_ptr<ExpressionElementNode> pRight);
+      std::shared_ptr<ExpressionElementNode> pLeft,
+      std::shared_ptr<ExpressionElementNode> pRight);
 
 
   virtual int value() override;
@@ -17,7 +17,7 @@ struct BinaryOperationNode final: ExpressionElementNode {
   std::shared_ptr<ExpressionElementNode> mp_right;
   int m_operationResult;
   OperationType m_binaryOp;
- private:
+  private:
 
   BinaryOperationNode() = delete;
   BinaryOperationNode(const BinaryOperationNode &) = delete;
