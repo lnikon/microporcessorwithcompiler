@@ -151,17 +151,18 @@ void RegisterMachineInterpreter::fillInstructionToInfo() {
   m_instructionToInfo["STORE"]  = std::make_tuple(true, 2);
   m_instructionToInfo["ASSIGN"] = std::make_tuple(true, 2);
 
-  m_instructionToInfo["SWAP"]   = std::make_tuple(true, 1);
-  m_instructionToInfo["AND"]    = std::make_tuple(true, 2);
-  m_instructionToInfo["OR"]     = std::make_tuple(true, 2);
-  m_instructionToInfo["XOR"]    = std::make_tuple(true, 2);
-  m_instructionToInfo["NAND"]   = std::make_tuple(true, 2);
-  m_instructionToInfo["NOR"]    = std::make_tuple(true, 2);
+  m_instructionToInfo["SWAP"]   = std::make_tuple(true, 2);
   m_instructionToInfo["MOV"]    = std::make_tuple(true, 2);
+
   m_instructionToInfo["ADD"]    = std::make_tuple(true, 2);
   m_instructionToInfo["SUB"]    = std::make_tuple(true, 2);
   m_instructionToInfo["MUL"]    = std::make_tuple(true, 2);
   m_instructionToInfo["DIV"]    = std::make_tuple(true, 2);
+  m_instructionToInfo["AND"]    = std::make_tuple(true, 2);
+  m_instructionToInfo["NAND"]   = std::make_tuple(true, 2);
+  m_instructionToInfo["OR"]     = std::make_tuple(true, 2);
+  m_instructionToInfo["NOR"]    = std::make_tuple(true, 2);
+  m_instructionToInfo["XOR"]    = std::make_tuple(true, 2);
 }
 
 bool RegisterMachineInterpreter::isSupportedInstruction(const std::string& instrName) {
@@ -190,6 +191,9 @@ int RegisterMachineInterpreter::doBinaryInstruction(int value1, int value2, cons
 
   } else if(instruction == "OR") {
     result = value1 | value2;
+
+  } else if(instruction == "NOR") {
+    result = !(value1 | value2);
 
   } else if(instruction == "XOR") {
     result = value1 ^ value2;
@@ -228,124 +232,163 @@ void RegisterMachineInterpreter::execute() {
   } else if(operandsNumber == 1) {
     if(instruction == "PRINT") {
       bool isRegisterSupported = m_env.isRegisterSupported(operand1);
-      if(isRegisterSupported) {
-        auto offsetForReg = m_env.getOffsetForReg(operand1);
-        unsigned int regValue = 0;
-        unsigned int *puch = reinterpret_cast<unsigned int *>(&m_regs[0]);
-        std::memcpy(&regValue, puch + offsetForReg, sizeof(regValue));
-        std::cout << "IN PRINT: " << *(puch + offsetForReg) << std::endl;
-        std::cout << operand1 << " = " << regValue << std::endl;
+      if(!isRegisterSupported) {
+        std::cerr << msg::error("Register " + operand1 + " is not supported");
+        throw;
       }
+
+      auto offsetForExt = m_env.getExtensionSize(extension);
+      if(!m_env.isRegisterOffsetCorrect(operand1, offsetForExt)) {
+        std::cerr << msg::incorrectOffset(operand1, offsetForExt);
+        throw;
+      }
+
+      auto offsetForReg = m_env.getOffsetForReg(operand1);
+
+      std::cout << "\n----> <offsetForReg` " << operand1 << ": " << offsetForReg << ">" << std::endl;
+      std::cout << "----> <offsetForExt` " << extension << ": " << offsetForExt  << ">" << std::endl;
+
+      int regValue = 0;
+      if(offsetForExt == WordSize::B) {
+        unsigned char *puchar = &m_regs[0];
+        std::memcpy(&regValue, puchar + offsetForReg, sizeof(regValue));
+
+      } else if(offsetForExt == WordSize::W) {
+        unsigned short *pushort = reinterpret_cast<unsigned short *>(&m_regs[0]);
+        std::memcpy(&regValue, pushort + offsetForReg, sizeof(regValue));
+
+      } else if(offsetForExt == WordSize::DW) {
+        unsigned int *puint = reinterpret_cast<unsigned int*>(&m_regs[0]);
+        std::memcpy(&regValue, puint + offsetForReg, sizeof(regValue));
+
+      } else if(offsetForExt == WordSize::QW) {
+        unsigned long *pulong = reinterpret_cast<unsigned long*>(&m_regs[0]);
+        std::memcpy(&regValue, pulong + offsetForReg, sizeof(regValue));
+      } else {
+        std::cout << msg::error("Unkown extension: " + extension);
+        throw;
+      }
+      std::cout << operand1 << " = " << regValue << std::endl;
+      // bool isRegisterSupported = m_env.isRegisterSupported(operand1);
+      // if(isRegisterSupported) {
+      //   auto offsetForReg = m_env.getOffsetForReg(operand1);
+      //   int regValue = 0;
+      //   unsigned int *puch = reinterpret_cast<unsigned int *>(&m_regs[0]);
+      //   std::memcpy(&regValue, puch + offsetForReg, sizeof(regValue));
+
+      //   std::cout << operand1 << " = " << regValue << std::endl;
+      // }
     } else if(instruction == "JUMP") {
       bool isOperandNumber = utility::isStringNumber(operand1);
       if(isOperandNumber) {
         std::size_t instructionIndex = std::stol(operand1) - 1;
         if(instructionIndex > m_instructions.size()) {
-              std::cout << "Incorrect line number: " << instructionIndex << "\n";
-              std::terminate();
-            }
-
-            std::cout << "setting programm counter to: " << instructionIndex << std::endl;
-            m_programCounter = instructionIndex;
-          }
-        } 
-    } else if(operandsNumber == 2) {
-      /* Required checks */
-      /* First operand always should be register */
-      bool isFirstOperandSupportedReg = m_env.isRegisterSupported(operand1);
-      if(!isFirstOperandSupportedReg) {
-          std::cout << "Register " << operand1 << " does not exists\n";
+          std::cout << "Incorrect line number: " << instructionIndex << "\n";
           std::terminate();
+        }
+
+        std::cout << "setting programm counter to: " << instructionIndex << std::endl;
+        m_programCounter = instructionIndex;
+      }
+    } 
+  } else if(operandsNumber == 2) {
+    /* Required checks */
+    /* First operand always should be register */
+    bool isFirstOperandSupportedReg = m_env.isRegisterSupported(operand1);
+    if(!isFirstOperandSupportedReg) {
+      std::cout << "Register " << operand1 << " does not exists\n";
+      std::terminate();
+    }
+
+    /* Second register can be register OR number */
+    bool isSecondOperandRegister = m_env.isRegisterSupported(operand2);
+    bool isSecondOperandNumber = utility::isStringNumber(operand2);
+    /* END Required checks */
+
+    if(instruction == "LOAD") {
+      // What to do here?
+    } else if(instruction == "ASSIGN") {
+      if(!isSecondOperandNumber) {
+        throw "\nSecond operand of ASSIGN should be a number\n";
       }
 
-      /* Second register can be register OR number */
-      bool isSecondOperandRegister = m_env.isRegisterSupported(operand2);
-      bool isSecondOperandNumber = utility::isStringNumber(operand2);
-      /* END Required checks */
+      auto offsetForExt = m_env.getExtensionSize(extension);
+      if(!m_env.isRegisterOffsetCorrect(operand1, offsetForExt)) {
+        std::cerr << msg::incorrectOffset(operand1, offsetForExt);
+        throw;
+      }
 
-      if(instruction == "LOAD") {
-        // What to do here?
-      } else if(instruction == "ASSIGN") {
-        if(!isSecondOperandNumber) {
-          throw "\nSecond operand of ASSIGN should be a number\n";
-        }
+      auto offsetForReg = m_env.getOffsetForReg(operand1);
 
-        auto offsetForExt = m_env.getExtensionSize(extension);
-        if(!m_env.isRegisterOffsetCorrect(operand1, offsetForExt)) {
-          std::cerr << msg::incorrectOffset(operand1, offsetForExt);
-          throw;
-        }
+      std::cout << "\n----> <offsetForReg` " << operand1 << ": " << offsetForReg << ">" << std::endl;
+      std::cout << "----> <offsetForExt` " << extension << ": " << offsetForExt  << ">" << std::endl;
 
-        auto offsetForReg = m_env.getOffsetForReg(operand1);
+      if(offsetForExt == WordSize::B) {
+        unsigned char *puch = &m_regs[0];
 
-        std::cout << "\n----> <offsetForReg` " << operand1 << ": " << offsetForReg << ">" << std::endl;
-        std::cout << "----> <offsetForExt` " << extension << ": " << offsetForExt  << ">" << std::endl;
+        auto operand2Value = std::stoi(operand2); 
+        std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
 
-        if(offsetForExt == WordSize::B) {
-          unsigned char *puch = &m_regs[0];
-          
-          auto operand2Value = std::stoi(operand2); 
-          std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
-          
-        } else if(offsetForExt == WordSize::W) {
-          unsigned short *puch = reinterpret_cast<unsigned short *>(&m_regs[0]);
-          auto operand2Value = std::stoi(operand2); 
-          std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
+      } else if(offsetForExt == WordSize::W) {
+        unsigned short *puch = reinterpret_cast<unsigned short *>(&m_regs[0]);
+        auto operand2Value = std::stoi(operand2); 
+        std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
 
-        } else if(offsetForExt == WordSize::DW) {
-          unsigned int *puch = reinterpret_cast<unsigned int*>(&m_regs[0]);
-          auto operand2Value = std::stoi(operand2); 
-          std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
+      } else if(offsetForExt == WordSize::DW) {
+        unsigned int *puch = reinterpret_cast<unsigned int*>(&m_regs[0]);
+        auto operand2Value = std::stoi(operand2); 
+        std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
 
-        } else if(offsetForExt == WordSize::QW) {
-          unsigned long *puch = reinterpret_cast<unsigned long*>(&m_regs[0]);
-          auto operand2Value = std::stoi(operand2); 
-          std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
-        } else {
-          std::cout << msg::error("Unkown extension: " + extension);
-          throw;
-        }
-      } else if(instruction == "ADD"  ||
-                instruction == "SUB"  ||
-                instruction == "MUL"  ||
-                instruction == "DIV"  ||
-                instruction == "AND"  ||
-                instruction == "NAND" ||
-                instruction == "OR"   ||
-                instruction == "XOR") {
-        if(!isSecondOperandRegister) {
-          std::cout << msg::error("Operands of ADD always should be registers");
-          throw;
-        }
+      } else if(offsetForExt == WordSize::QW) {
+        unsigned long *puch = reinterpret_cast<unsigned long*>(&m_regs[0]);
+        auto operand2Value = std::stoi(operand2); 
+        std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
+      } else {
+        std::cout << msg::error("Unkown extension: " + extension);
+        throw;
+      }
+    } else if(instruction == "ADD"  ||
+        instruction == "SUB"  ||
+        instruction == "MUL"  ||
+        instruction == "DIV"  ||
+        instruction == "AND"  ||
+        instruction == "NAND" ||
+        instruction == "NOR"  ||
+        instruction == "OR"   ||
+        instruction == "XOR") {
+      if(!isSecondOperandRegister) {
+        std::cout << msg::error("Operands of ADD always should be registers");
+        throw;
+      }
 
-        bool isFirstOperandSupportedReg = m_env.isRegisterSupported(operand1);
-        if(!isFirstOperandSupportedReg) {
-          std::cout << msg::error("Operand " + operand1 + " is not supported");
-          throw;
-        }
+      bool isFirstOperandSupportedReg = m_env.isRegisterSupported(operand1);
+      if(!isFirstOperandSupportedReg) {
+        std::cout << msg::error("Operand " + operand1 + " is not supported");
+        throw;
+      }
 
-        bool isSecondOperandSupportedReg = m_env.isRegisterSupported(operand2);
-        if(!isSecondOperandSupportedReg) {
-          std::cout << msg::error("Operand " + operand2 + " is not supported");
-          throw;
-        } 
-        
-        auto offsetForExt = m_env.getExtensionSize(extension);
-        unsigned char* puchar = nullptr;
-        unsigned short* pushort = nullptr;
-        unsigned int* puint = nullptr;
-        unsigned long* pulong = nullptr;
+      bool isSecondOperandSupportedReg = m_env.isRegisterSupported(operand2);
+      if(!isSecondOperandSupportedReg) {
+        std::cout << msg::error("Operand " + operand2 + " is not supported");
+        throw;
+      } 
 
-        unsigned int operand1Value = 0;
-        unsigned int operand2Value = 0;
+      auto offsetForExt = m_env.getExtensionSize(extension);
+      unsigned char*  puchar  = nullptr;
+      unsigned short* pushort = nullptr;
+      unsigned int*   puint   = nullptr;
+      unsigned long*  pulong  = nullptr;
 
-        std::size_t offsetForOp1 = 0;
-        std::size_t offsetForOp2 = 0;
+      unsigned int operand1Value = 0;
+      unsigned int operand2Value = 0;
 
-        if(offsetForExt == WordSize::B) {
-          puchar = &m_regs[0];
+      std::size_t offsetForOp1 = 0;
+      std::size_t offsetForOp2 = 0;
 
-          offsetForOp1 = m_env.getOffsetForReg(operand1);
+      if(offsetForExt == WordSize::B) {
+        puchar = &m_regs[0];
+
+        offsetForOp1 = m_env.getOffsetForReg(operand1);
           std::memcpy(&operand1Value, puchar + offsetForOp1, sizeof(operand1Value));
 
           offsetForOp2 = m_env.getOffsetForReg(operand2);
@@ -406,6 +449,85 @@ void RegisterMachineInterpreter::execute() {
         if(!isSecondOperandRegister) {
           throw "Operands of ADD always should be registers";
         }
+
+        auto offsetForExt = m_env.getExtensionSize(extension);
+        unsigned char* puchar = nullptr;
+        unsigned short* pushort = nullptr;
+        unsigned int* puint = nullptr;
+        unsigned long* pulong = nullptr;
+
+        unsigned int operand1Value = 0;
+        unsigned int operand2Value = 0;
+
+        std::size_t offsetForOp1 = 0;
+        std::size_t offsetForOp2 = 0;
+
+        if(offsetForExt == WordSize::B) {
+          puchar = &m_regs[0];
+
+          operand1Value = 0;
+          operand2Value = 0;
+
+          offsetForOp1 = m_env.getOffsetForReg(operand1);
+          std::memcpy(&operand1Value, puchar + offsetForOp1, sizeof(operand1Value));
+
+          offsetForOp2 = m_env.getOffsetForReg(operand2);
+          std::memcpy(&operand2Value, puchar + offsetForOp2, sizeof(operand2Value));
+        } else if(offsetForExt == WordSize::W) {
+          pushort = reinterpret_cast<unsigned short *>(&m_regs[0]);
+
+          operand1Value = 0;
+          operand2Value = 0;
+
+          offsetForOp1 = m_env.getOffsetForReg(operand1);
+          std::memcpy(&operand1Value, pushort + offsetForOp1, sizeof(operand1Value));
+
+          offsetForOp2 = m_env.getOffsetForReg(operand2);
+          std::memcpy(&operand2Value, pushort + offsetForOp2, sizeof(operand2Value));
+        } else if(offsetForExt == WordSize::DW) {
+          puint = reinterpret_cast<unsigned int*>(&m_regs[0]);
+
+          operand1Value = 0;
+          operand2Value = 0;
+
+          offsetForOp1 = m_env.getOffsetForReg(operand1);
+          std::memcpy(&operand1Value, puint + offsetForOp1, sizeof(operand1Value));
+
+          offsetForOp2 = m_env.getOffsetForReg(operand2);
+          std::memcpy(&operand2Value, puint + offsetForOp2, sizeof(operand2Value));
+        } else if(offsetForExt == WordSize::QW) {
+          pulong = reinterpret_cast<unsigned long*>(&m_regs[0]);
+
+          operand1Value = 0;
+          operand2Value = 0;
+
+          offsetForOp1 = m_env.getOffsetForReg(operand1);
+          std::memcpy(&operand1Value, pulong + offsetForOp1, sizeof(operand1Value));
+
+          offsetForOp2 = m_env.getOffsetForReg(operand2);
+          std::memcpy(&operand2Value, pulong + offsetForOp2, sizeof(operand2Value));
+        } else {
+          std::cout << msg::error("Unkown extension: " + extension);
+          throw;
+        }
+
+        // std::swap(operand1Value, operand2Value);
+        
+        if(offsetForExt == WordSize::B) {
+          std::memcpy(puchar + offsetForOp1, &operand2Value, sizeof(operand2Value));  
+          std::memcpy(puchar + offsetForOp2, &operand1Value, sizeof(operand1Value));  
+        } else if(offsetForExt == WordSize::W) {
+          std::memcpy(pushort + offsetForOp1, &operand2Value, sizeof(operand2Value));  
+          std::memcpy(pushort + offsetForOp2, &operand1Value, sizeof(operand1Value));  
+        } else if(offsetForExt == WordSize::DW) {
+          std::memcpy(puint + offsetForOp1, &operand2Value, sizeof(operand2Value));  
+          std::memcpy(puint + offsetForOp2, &operand1Value, sizeof(operand1Value));  
+          std::cout << *(puint + offsetForOp1) << std::endl;
+          std::cout << *(puint + offsetForOp2) << std::endl;
+        } else if(offsetForExt == WordSize::QW) {
+          std::memcpy(pulong + offsetForOp1, &operand2Value, sizeof(operand2Value));  
+          std::memcpy(pulong + offsetForOp2, &operand1Value, sizeof(operand1Value));  
+        }         
       }
     }
 }
