@@ -31,7 +31,7 @@ void RegisterMachineInterpreter::run(
   // instructions, execution should halt
   while(m_programCounter != instructionsSize) {
     // Get instruction pointed by @m_programCounter
-    std::tuple<std::string, std::string, std::string> instructionWithOperands = fetch();
+    std::tuple<std::string, std::string, std::string, std::string> instructionWithOperands = fetch();
 
     // Set @m_instructionRegister equal to got instruction
     decode(instructionWithOperands);
@@ -54,12 +54,13 @@ void RegisterMachineInterpreter::fillInstructions(
   auto line = std::string{};
 
   auto instruction = std::string{ NOTOP };
+  auto extension   = std::string{ NOTOP };
   auto operand1    = std::string{ NOTOP };
   auto operand2    = std::string{ NOTOP };
 
   while(std::getline(inputAssemblyStream, line)) {
     if(line.empty()) {
-      m_instructions.push_back(std::make_tuple("NOP", "NOTOP", "NOTOP"));
+      m_instructions.push_back(std::make_tuple("NOP", "NOTOP", "NOTOP", "NOTOP"));
       continue;
     }
 
@@ -72,41 +73,57 @@ void RegisterMachineInterpreter::fillInstructions(
     // Tokenize instruction line
     std::vector<std::string> lineVector{StringIterator{lineStream},
       StringIterator{}};
-
-    // Skip empty lines
-    // TODO Add comments support
-    if(lineVector.empty()) {
-      continue;
-    }
+    const auto lineVectorSize = lineVector.size();
 
     std::cout << "\nlineVector: ";
     debug_printContainer(std::begin(lineVector), std::end(lineVector));
+    std::cout << "\n";
 
     // Figure out is instruction supported
     instruction = lineVector[0];
     auto instrInfoIt = m_instructionToInfo.find(instruction);
-    if(instrInfoIt == std::end(m_instructionToInfo)) {
+    if(!isSupportedInstruction(instruction)) {
       std::cerr << "\nUnsupported instruction: " << instruction << "\n";
       std::terminate();
     }
 
+    if(lineVectorSize == 1) {
+      m_instructions.push_back(std::make_tuple(instruction, extension, operand1, operand2));
+      continue;
+    }
+
+    // Check, is second token is extension, if yes,
+    // grab its value and save, otherwise set extension value
+    // to its default value: DW
+    const bool isTokenExt = m_env.isStringExtension(lineVector[1]);
+    extension = "DW";
+    if(isTokenExt) {
+      extension = lineVector[1];
+    }
     // Get number of operands
     // Depending on it, instructions are splitted into groups
     // Those are do not work with operands, e.g. NOP
     // Those are work only with one, e.g. PRINT R1
     // And other usual instructions e.g. ADD R1 R4
-    const auto gotOperandsNumber = lineVector.size() - 1;
-    const auto correctOperandsNumber = instrInfoIt->second;
+    auto gotOperandsNumber = std::size_t{}; 
+    if(isTokenExt) {
+      gotOperandsNumber = lineVector.size() - 2;
+    } else {
+      gotOperandsNumber = lineVector.size() - 1;
+    }
+
+    auto correctOperandsNumber = std::size_t{};
+    std::tie(std::ignore, correctOperandsNumber) = instrInfoIt->second;
     if(gotOperandsNumber == correctOperandsNumber) {
       if(gotOperandsNumber == 0) {
         // Defaults values already set to operands
         // This branch is for consistency
         // Nothing to do here
       } else if(gotOperandsNumber == 1) {
-        operand1 = lineVector[1];
+        operand1 = lineVector[lineVectorSize - 1];
       } else if(gotOperandsNumber == 2) {
-        operand1 = lineVector[1];
-        operand2 = lineVector[2];
+        operand1 = lineVector[lineVectorSize - 2];
+        operand2 = lineVector[lineVectorSize - 1];
       }
     } else {
       std::cerr << "\nWrong number of operands #" << gotOperandsNumber 
@@ -114,69 +131,116 @@ void RegisterMachineInterpreter::fillInstructions(
       std::terminate();
     }
 
-    m_instructions.push_back(std::make_tuple(instruction, operand1, operand2));
+    std::cout << "\ninstruction: " << instruction << std::endl;
+    std::cout << "extension:   " << extension << std::endl;
+    std::cout << "operand1:    " << operand1 << std::endl;
+    std::cout << "operand2:    " << operand2 << std::endl;
+    m_instructions.push_back(std::make_tuple(instruction, extension, operand1, operand2));
   }
 }
 
 void RegisterMachineInterpreter::fillInstructionToInfo() {
-  m_instructionToInfo["HALT"] = 0;
-  m_instructionToInfo["NOP"] = 0;
-  m_instructionToInfo["JUMP"] = 1;
-  m_instructionToInfo["PRINT"] = 1;
-  m_instructionToInfo["LOAD"]  = 2;
-  m_instructionToInfo["STORE"]  = 2;
-  m_instructionToInfo["ADD"]   = 2;
-  m_instructionToInfo["SUB"]   = 2;
-  m_instructionToInfo["MUL"]   = 2;
-  m_instructionToInfo["DIV"]   = 2;
+  m_instructionToInfo["HALT"]   = std::make_tuple(false, 0);
+  m_instructionToInfo["NOP"]    = std::make_tuple(false, 0);
+
+  m_instructionToInfo["JUMP"]   = std::make_tuple(false, 1);
+  m_instructionToInfo["PRINT"]  = std::make_tuple(true, 1);
+  m_instructionToInfo["NOT"]    = std::make_tuple(true, 1);
+
+  m_instructionToInfo["LOAD"]   = std::make_tuple(true, 2);
+  m_instructionToInfo["STORE"]  = std::make_tuple(true, 2);
+  m_instructionToInfo["ASSIGN"] = std::make_tuple(true, 2);
+
+  m_instructionToInfo["SWAP"]   = std::make_tuple(true, 1);
+  m_instructionToInfo["AND"]    = std::make_tuple(true, 2);
+  m_instructionToInfo["OR"]     = std::make_tuple(true, 2);
+  m_instructionToInfo["XOR"]    = std::make_tuple(true, 2);
+  m_instructionToInfo["NAND"]   = std::make_tuple(true, 2);
+  m_instructionToInfo["NOR"]    = std::make_tuple(true, 2);
+  m_instructionToInfo["MOV"]    = std::make_tuple(true, 2);
+  m_instructionToInfo["ADD"]    = std::make_tuple(true, 2);
+  m_instructionToInfo["SUB"]    = std::make_tuple(true, 2);
+  m_instructionToInfo["MUL"]    = std::make_tuple(true, 2);
+  m_instructionToInfo["DIV"]    = std::make_tuple(true, 2);
 }
 
 bool RegisterMachineInterpreter::isSupportedInstruction(const std::string& instrName) {
   return m_instructionToInfo.find(instrName) != std::end(m_instructionToInfo);
 }
 
-std::tuple<std::string, std::string, std::string> RegisterMachineInterpreter::fetch() {
+int RegisterMachineInterpreter::doBinaryInstruction(int value1, int value2, const std::string& instruction) {
+  int result = 0;
+  if(instruction == "ADD") {
+    result = value1 + value2;
+
+  } else if(instruction == "SUB") {
+    result = value1 - value2;
+
+  } else if(instruction == "MUL") {
+    result = value1 * value2;
+
+  } else if(instruction == "DIV") {
+    result = value1 / value2;
+    
+  } else if(instruction == "AND") {
+    result = value1 & value2;
+    
+  } else if(instruction == "NAND") {
+    result = !(value1 & value2);
+
+  } else if(instruction == "OR") {
+    result = value1 | value2;
+
+  } else if(instruction == "XOR") {
+    result = value1 ^ value2;
+  }
+  
+  return result;
+}
+
+std::tuple<std::string, std::string, std::string, std::string> RegisterMachineInterpreter::fetch() {
   return m_instructions[m_programCounter++];
 }
 
 void RegisterMachineInterpreter::decode(
-    const std::tuple<std::string, std::string, std::string>& instructionWithOperands) {
+    const std::tuple<std::string, std::string, std::string, std::string>& instructionWithOperands) {
 
   m_instructionRegister = instructionWithOperands;
 }
 
 void RegisterMachineInterpreter::execute() {
-    auto [instruction, operand1, operand2] = m_instructionRegister;
-    auto instrInfoIt = m_instructionToInfo.find(instruction);
+  auto [instruction, extension, operand1, operand2] = m_instructionRegister;
+  // std::cout << "\ninstruction: " << instruction << std::endl;
+  // std::cout << "extension:   " << extension << std::endl;
+  // std::cout << "operand1:    " << operand1 << std::endl;
+  // std::cout << "operand2:    " << operand2 << std::endl;
 
-    const auto operandsNumber = instrInfoIt->second;
+  auto instrInfoIt = m_instructionToInfo.find(instruction);
+  const auto infoTuple = instrInfoIt->second;
+  const auto [isExt, operandsNumber] = infoTuple;
 
-    if(operandsNumber == 0) {
-      if(instruction == "HALT") {
-        // It's a temporary solution
-        // For future, consider a return value
-        // In case of @false, stop execution of machine
-        std::terminate();
-      } else if(instruction == "NOP") {
+  if(operandsNumber == 0) {
+    if(instruction == "HALT") {
+      std::terminate();
+    } else if(instruction == "NOP") {
+      std::cout << "NOPe :)" << std::endl;
+    }
+  } else if(operandsNumber == 1) {
+    if(instruction == "PRINT") {
+      bool isRegisterSupported = m_env.isRegisterSupported(operand1);
+      if(isRegisterSupported) {
+        auto offsetForReg = m_env.getOffsetForReg(operand1);
+        unsigned int regValue = 0;
+        unsigned int *puch = reinterpret_cast<unsigned int *>(&m_regs[0]);
+        std::memcpy(&regValue, puch + offsetForReg, sizeof(regValue));
+        std::cout << "IN PRINT: " << *(puch + offsetForReg) << std::endl;
+        std::cout << operand1 << " = " << regValue << std::endl;
       }
-    } else if(operandsNumber == 1) {
-      if(instruction == "PRINT") {
-        bool isRegExists = m_env.isRegisterExists(operand1);
-        if(isRegExists) {
-          auto regToValueOpt = m_env.getRegisterToValueIt(operand1);
-          if(regToValueOpt.has_value()) {
-            auto regValue = regToValueOpt.value()->second;
-            std::cout << "\n" << regValue << std::endl; 
-          }
-        } else {
-          std::cout << "Register " << operand1 << " has not been used yet\n";
-          std::terminate();
-        }
-      } else if(instruction == "JUMP") {
-          bool isOperandNumber = utility::isStringNumber(operand1);
-          if(isOperandNumber) {
-            std::size_t instructionIndex = std::stol(operand1) - 1;
-            if(instructionIndex > m_instructions.size()) {
+    } else if(instruction == "JUMP") {
+      bool isOperandNumber = utility::isStringNumber(operand1);
+      if(isOperandNumber) {
+        std::size_t instructionIndex = std::stol(operand1) - 1;
+        if(instructionIndex > m_instructions.size()) {
               std::cout << "Incorrect line number: " << instructionIndex << "\n";
               std::terminate();
             }
@@ -195,170 +259,153 @@ void RegisterMachineInterpreter::execute() {
       }
 
       /* Second register can be register OR number */
-      bool isSecondOperandRegister = m_env.isRegisterExists(operand2);
+      bool isSecondOperandRegister = m_env.isRegisterSupported(operand2);
       bool isSecondOperandNumber = utility::isStringNumber(operand2);
       /* END Required checks */
 
       if(instruction == "LOAD") {
         // What to do here?
-      } else if(instruction == "STORE") {
-        if(isSecondOperandNumber) {
-          m_env.addRegisterToValue(operand1, operand2);
-        } else if(isSecondOperandRegister) {
-          auto regToValueOpt = m_env.getRegisterToValueIt(operand2);
-          if(regToValueOpt.has_value()) {
-            auto regValue = regToValueOpt.value()->second;
-            bool isRegValueNumber = utility::isStringNumber(regValue);
-            if(isRegValueNumber) {
-              m_env.addRegisterToValue(operand1, regValue);
-            } else {
-              throw "Second operand of STOTE should be register OR number\n";
-            }
-          } else {
-            throw "Register " + operand2 + "has not been used\n";
-          }
+      } else if(instruction == "ASSIGN") {
+        if(!isSecondOperandNumber) {
+          throw "\nSecond operand of ASSIGN should be a number\n";
         }
-      } else if(instruction == "ADD") {
+
+        auto offsetForExt = m_env.getExtensionSize(extension);
+        if(!m_env.isRegisterOffsetCorrect(operand1, offsetForExt)) {
+          std::cerr << msg::incorrectOffset(operand1, offsetForExt);
+          throw;
+        }
+
+        auto offsetForReg = m_env.getOffsetForReg(operand1);
+
+        std::cout << "\n----> <offsetForReg` " << operand1 << ": " << offsetForReg << ">" << std::endl;
+        std::cout << "----> <offsetForExt` " << extension << ": " << offsetForExt  << ">" << std::endl;
+
+        if(offsetForExt == WordSize::B) {
+          unsigned char *puch = &m_regs[0];
+          
+          auto operand2Value = std::stoi(operand2); 
+          std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
+          
+        } else if(offsetForExt == WordSize::W) {
+          unsigned short *puch = reinterpret_cast<unsigned short *>(&m_regs[0]);
+          auto operand2Value = std::stoi(operand2); 
+          std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
+
+        } else if(offsetForExt == WordSize::DW) {
+          unsigned int *puch = reinterpret_cast<unsigned int*>(&m_regs[0]);
+          auto operand2Value = std::stoi(operand2); 
+          std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
+
+        } else if(offsetForExt == WordSize::QW) {
+          unsigned long *puch = reinterpret_cast<unsigned long*>(&m_regs[0]);
+          auto operand2Value = std::stoi(operand2); 
+          std::memcpy(puch + offsetForReg, &operand2Value, sizeof(operand2Value));  
+        } else {
+          std::cout << msg::error("Unkown extension: " + extension);
+          throw;
+        }
+      } else if(instruction == "ADD"  ||
+                instruction == "SUB"  ||
+                instruction == "MUL"  ||
+                instruction == "DIV"  ||
+                instruction == "AND"  ||
+                instruction == "NAND" ||
+                instruction == "OR"   ||
+                instruction == "XOR") {
+        if(!isSecondOperandRegister) {
+          std::cout << msg::error("Operands of ADD always should be registers");
+          throw;
+        }
+
+        bool isFirstOperandSupportedReg = m_env.isRegisterSupported(operand1);
+        if(!isFirstOperandSupportedReg) {
+          std::cout << msg::error("Operand " + operand1 + " is not supported");
+          throw;
+        }
+
+        bool isSecondOperandSupportedReg = m_env.isRegisterSupported(operand2);
+        if(!isSecondOperandSupportedReg) {
+          std::cout << msg::error("Operand " + operand2 + " is not supported");
+          throw;
+        } 
+        
+        auto offsetForExt = m_env.getExtensionSize(extension);
+        unsigned char* puchar = nullptr;
+        unsigned short* pushort = nullptr;
+        unsigned int* puint = nullptr;
+        unsigned long* pulong = nullptr;
+
+        unsigned int operand1Value = 0;
+        unsigned int operand2Value = 0;
+
+        std::size_t offsetForOp1 = 0;
+        std::size_t offsetForOp2 = 0;
+
+        if(offsetForExt == WordSize::B) {
+          puchar = &m_regs[0];
+
+          offsetForOp1 = m_env.getOffsetForReg(operand1);
+          std::memcpy(&operand1Value, puchar + offsetForOp1, sizeof(operand1Value));
+
+          offsetForOp2 = m_env.getOffsetForReg(operand2);
+          std::memcpy(&operand2Value, puchar + offsetForOp2, sizeof(operand2Value));
+        } else if(offsetForExt == WordSize::W) {
+          pushort = reinterpret_cast<unsigned short *>(&m_regs[0]);
+
+          operand1Value = 0;
+          operand2Value = 0;
+
+          offsetForOp1 = m_env.getOffsetForReg(operand1);
+          std::memcpy(&operand1Value, puchar + offsetForOp1, sizeof(operand1Value));
+
+          offsetForOp2 = m_env.getOffsetForReg(operand2);
+          std::memcpy(&operand2Value, puchar + offsetForOp2, sizeof(operand2Value));
+        } else if(offsetForExt == WordSize::DW) {
+          puint = reinterpret_cast<unsigned int*>(&m_regs[0]);
+
+          operand1Value = 0;
+          operand2Value = 0;
+
+          offsetForOp1 = m_env.getOffsetForReg(operand1);
+          std::memcpy(&operand1Value, puint + offsetForOp1, sizeof(operand1Value));
+
+          offsetForOp2 = m_env.getOffsetForReg(operand2);
+          std::memcpy(&operand2Value, puint + offsetForOp2, sizeof(operand2Value));
+        } else if(offsetForExt == WordSize::QW) {
+          pulong = reinterpret_cast<unsigned long*>(&m_regs[0]);
+
+          operand1Value = 0;
+          operand2Value = 0;
+
+          offsetForOp1 = m_env.getOffsetForReg(operand1);
+          std::memcpy(&operand1Value, pulong + offsetForOp1, sizeof(operand1Value));
+
+          offsetForOp2 = m_env.getOffsetForReg(operand2);
+          std::memcpy(&operand2Value, pulong + offsetForOp2, sizeof(operand2Value));
+        } else {
+          std::cout << msg::error("Unkown extension: " + extension);
+          throw;
+        }
+        
+        int result = doBinaryInstruction(operand1Value, operand2Value, instruction);
+
+        if(offsetForExt == WordSize::B) {
+          std::memcpy(puchar + offsetForOp1, &result, sizeof(operand2Value));
+
+        } else if(offsetForExt == WordSize::W) {
+          std::memcpy(pushort + offsetForOp1, &result, sizeof(result));
+
+        } else if(offsetForExt == WordSize::DW) {
+          std::memcpy(puint + offsetForOp1, &result, sizeof(result));
+
+        } else if(offsetForExt == WordSize::QW) {
+          std::memcpy(pulong + offsetForOp1, &result, sizeof(result));
+        }
+      }  else if(instruction == "SWAP") {
         if(!isSecondOperandRegister) {
           throw "Operands of ADD always should be registers";
         }
-
-        auto firstOperandValueOpt = m_env.getRegisterToValueIt(operand1);
-        int firstOperandValueInt = 0;
-        if(firstOperandValueOpt.has_value()) {
-          firstOperandValueInt = std::stoi(firstOperandValueOpt.value()->second);
-        } else {
-            throw "Register " + operand1 + "has not been used\n";
-        }
-
-        auto secondOperandValueOpt = m_env.getRegisterToValueIt(operand2);
-        int secondOperandValueInt = 0;
-        if(secondOperandValueOpt.has_value()) {
-          secondOperandValueInt = std::stoi(secondOperandValueOpt.value()->second);
-        } else {
-            throw "Register " + operand2 + "has not been used\n";
-        }
-
-        int result = firstOperandValueInt + secondOperandValueInt;
-        firstOperandValueOpt.value()->second = std::to_string(result);
-        std::memcpy(&m_regs[0], &result, sizeof(m_regs[0]));
-      } else if(instruction == "SUB") {
-        if(!isSecondOperandRegister) {
-          throw "Operands of ADD always should be registers";
-        }
-
-        auto firstOperandValueOpt = m_env.getRegisterToValueIt(operand1);
-        int firstOperandValueInt = 0;
-        if(firstOperandValueOpt.has_value()) {
-          firstOperandValueInt = std::stoi(firstOperandValueOpt.value()->second);
-        } else {
-          throw "Register " + operand1 + "has not been used\n";
-        }
-
-        auto secondOperandValueOpt = m_env.getRegisterToValueIt(operand2);
-        int secondOperandValueInt = 0;
-        if(secondOperandValueOpt.has_value()) {
-          secondOperandValueInt = std::stoi(secondOperandValueOpt.value()->second);
-        } else {
-          throw "Register " + operand2 + "has not been used\n";
-        }
-
-        int result = firstOperandValueInt * secondOperandValueInt;
-        firstOperandValueOpt.value()->second = std::to_string(result);
-
-      } else if(instruction == "MUL") {
-        if(!isSecondOperandRegister) {
-          throw "Operands of ADD always should be registers";
-        }
-
-        auto firstOperandValueOpt = m_env.getRegisterToValueIt(operand1);
-        int firstOperandValueInt = 0;
-        if(firstOperandValueOpt.has_value()) {
-          firstOperandValueInt = std::stoi(firstOperandValueOpt.value()->second);
-        } else {
-            throw "Register " + operand1 + "has not been used\n";
-        }
-
-        auto secondOperandValueOpt = m_env.getRegisterToValueIt(operand2);
-        int secondOperandValueInt = 0;
-        if(secondOperandValueOpt.has_value()) {
-          secondOperandValueInt = std::stoi(secondOperandValueOpt.value()->second);
-        } else {
-            throw "Register " + operand2 + "has not been used\n";
-        }
-
-        int result = firstOperandValueInt + secondOperandValueInt;
-        firstOperandValueOpt.value()->second = std::to_string(result);
-      } else if(instruction == "SUB") {
-        if(!isSecondOperandRegister) {
-          throw "Operands of ADD always should be registers";
-        }
-
-        auto firstOperandValueOpt = m_env.getRegisterToValueIt(operand1);
-        int firstOperandValueInt = 0;
-        if(firstOperandValueOpt.has_value()) {
-          firstOperandValueInt = std::stoi(firstOperandValueOpt.value()->second);
-        } else {
-          throw "Register " + operand1 + "has not been used\n";
-        }
-
-        auto secondOperandValueOpt = m_env.getRegisterToValueIt(operand2);
-        int secondOperandValueInt = 0;
-        if(secondOperandValueOpt.has_value()) {
-          secondOperandValueInt = std::stoi(secondOperandValueOpt.value()->second);
-        } else {
-          throw "Register " + operand2 + "has not been used\n";
-        }
-
-        int result = firstOperandValueInt * secondOperandValueInt;
-
-        firstOperandValueOpt.value()->second = std::to_string(result);
-      } else if(instruction == "DIV") {
-        if(!isSecondOperandRegister) {
-          throw "Operands of ADD always should be registers";
-        }
-
-        auto firstOperandValueOpt = m_env.getRegisterToValueIt(operand1);
-        int firstOperandValueInt = 0;
-        if(firstOperandValueOpt.has_value()) {
-          firstOperandValueInt = std::stoi(firstOperandValueOpt.value()->second);
-        } else {
-            throw "Register " + operand1 + "has not been used\n";
-        }
-
-        auto secondOperandValueOpt = m_env.getRegisterToValueIt(operand2);
-        int secondOperandValueInt = 0;
-        if(secondOperandValueOpt.has_value()) {
-          secondOperandValueInt = std::stoi(secondOperandValueOpt.value()->second);
-        } else {
-            throw "Register " + operand2 + "has not been used\n";
-        }
-
-        int result = firstOperandValueInt + secondOperandValueInt;
-        firstOperandValueOpt.value()->second = std::to_string(result);
-      } else if(instruction == "SUB") {
-        if(!isSecondOperandRegister) {
-          throw "Operands of ADD always should be registers";
-        }
-
-        auto firstOperandValueOpt = m_env.getRegisterToValueIt(operand1);
-        int firstOperandValueInt = 0;
-        if(firstOperandValueOpt.has_value()) {
-          firstOperandValueInt = std::stoi(firstOperandValueOpt.value()->second);
-        } else {
-          throw "Register " + operand1 + "has not been used\n";
-        }
-
-        auto secondOperandValueOpt = m_env.getRegisterToValueIt(operand2);
-        int secondOperandValueInt = 0;
-        if(secondOperandValueOpt.has_value()) {
-          secondOperandValueInt = std::stoi(secondOperandValueOpt.value()->second);
-        } else {
-          throw "Register " + operand2 + "has not been used\n";
-        }
-
-        int result = firstOperandValueInt / secondOperandValueInt;
-        firstOperandValueOpt.value()->second = std::to_string(result);
       }
     }
 }

@@ -10,6 +10,8 @@ int main() {
   try {
     const std::string& filename = "two_operand_asm.myasm";
     rgvm.run(filename);
+  } catch(const char* pmsg) {
+    std::cout << pmsg << "\n";
   } catch(const std::exception& e) {
     std::cout << e.what() << "\n";
   }
