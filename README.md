@@ -14,3 +14,10 @@
 5. Add separate data clases.
 6. Main refactoring.
 7. Drink a cup of kaffee.
+
+# How to build
+`mkdir build && cd build`
+`cmake ..`
+`make`
+
+After this, you should compiled binaries for files from apps folder.
