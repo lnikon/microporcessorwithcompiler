@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cstdlib>
 
 #include "BinaryExpressionBuilder.hpp"
 #include "BinaryOperationNode.hpp"
