@@ -17,7 +17,9 @@
 
 # How to build
 `mkdir build && cd build`
+
 `cmake ..`
+
 `make`
 
 After this, you should compiled binaries for files from apps folder.
