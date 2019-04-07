@@ -22,4 +22,4 @@
 
 `make`
 
-After this, you should compiled binaries for files from apps folder.
+After these steps, you should see compiled binaries for files from apps folder.
