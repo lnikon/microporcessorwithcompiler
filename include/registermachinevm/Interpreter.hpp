@@ -1,11 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <stack>
 #include <unordered_map>
 #include <set>
 #include <string>
 #include <tuple>
 #include <algorithm>
+#include <utility>
 
 namespace WordSize {
 
@@ -53,7 +55,7 @@ struct RegisterEnvirnoment {
     }
     
     bool isRegisterOffsetCorrect(const std::string& reg, std::size_t offsetSize) {
-      return !static_cast<bool>(m_registerToOffset[reg] % offsetSize);
+      return !static_cast<bool>(offsetSize % (m_registerToOffset[reg] ));
     }
 
     bool isRegisterSupported(const std::string& reg) {
@@ -110,6 +112,10 @@ struct RegisterMachineInterpreter {
   std::tuple<std::string, std::string, std::string, std::string> m_instructionRegister;
   std::unordered_map< std::string, 
                       std::tuple<bool, std::size_t>> m_instructionToInfo;
+  // OF SF ZF CF
+  std::array<bool, 4> m_flags;
+
+  std::stack<std::pair<int, std::size_t>> m_stack;
 
   private:
   // Main cycle implementation functions
@@ -124,4 +130,18 @@ struct RegisterMachineInterpreter {
   bool isSupportedInstruction(const std::string& instrName);
 
   int doBinaryInstruction(int value1, int value2, const std::string& instruction);
+
+  void printCurrentStepInfo();
+
+  inline void printFlags() const;
+
+  inline void setCarryFlagAdd(int op1, int op2);
+  inline void setCarryFlagSub(int op1, int op2);
+  inline void setCarryFlagMul(int op1, int op2);
+  inline void setCarryFlagDiv(int op1, int op2);
+
+  inline void setZeroFlag(int result);
+  inline void setSignFlag(int result);
+  inline void setOverflowFlag(int result);
 };
+
